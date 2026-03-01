@@ -54,7 +54,7 @@ export default function EpisodesPage() {
       <EpisodeSummaryPanel />
       <div className="space-y-4">
         {filtered.length > 0 ? (
-          filtered.map((ep) => <EpisodeCard key={ep.id} episode={ep} />)
+          filtered.map((ep, idx) => <EpisodeCard key={ep.id} episode={ep} insightIndex={idx} />)
         ) : (
           <div className="rounded-2xl bg-card p-8 shadow-sm text-center">
             <p className="text-sm text-muted-foreground">No episodes in this time range.</p>

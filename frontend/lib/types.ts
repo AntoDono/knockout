@@ -234,6 +234,8 @@ export interface DrugOption {
   name: string;
   tHalfHours: number;
   qtRisk: QtRisk;
+  description: string;
+  category: "first-line" | "alternative" | "reserve" | "qt-risk";
 }
 
 export interface DrugLevelSnapshot {

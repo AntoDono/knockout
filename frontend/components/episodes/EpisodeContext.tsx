@@ -1,12 +1,12 @@
 "use client";
 import { Heart, Activity, Thermometer, Moon, CloudSun } from "lucide-react";
 import { useFetch } from "@/lib/api";
-import type { EpisodeContextData } from "@/lib/types";
-import { EPISODE_INSIGHTS } from "@/lib/data/synthetic";
+import type { EpisodeContextData, EpisodeInsight } from "@/lib/types";
 import { EpisodeTimeline } from "./EpisodeTimeline";
 
 interface EpisodeContextProps {
   episodeId: number;
+  insight?: EpisodeInsight;
 }
 
 function MiniStat({ icon: Icon, label, value, unit, color, comparison }: {
@@ -29,7 +29,7 @@ function MiniStat({ icon: Icon, label, value, unit, color, comparison }: {
   );
 }
 
-export function EpisodeContext({ episodeId }: EpisodeContextProps) {
+export function EpisodeContext({ episodeId, insight }: EpisodeContextProps) {
   const { data: ctx, loading } = useFetch<EpisodeContextData>(`/episodes/${episodeId}/context`);
 
   if (loading || !ctx) {
@@ -88,9 +88,6 @@ export function EpisodeContext({ episodeId }: EpisodeContextProps) {
   const weatherDeviation = avgWeatherTemp !== null && baselines?.weather?.meanTempC
     ? Math.round(avgWeatherTemp - baselines.weather.meanTempC)
     : null;
-
-  // Context narrative from hard-coded insights
-  const insight = EPISODE_INSIGHTS.find((i) => i.id === episodeId);
 
   return (
     <div className="mt-4 pt-4 border-t border-border/50 space-y-3 animate-fade-in">

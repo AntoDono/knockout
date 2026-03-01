@@ -1,21 +1,45 @@
 import type { DrugOption, EpisodeInsight, EpisodeSummary } from "../types";
 
 export const DRUG_OPTIONS: DrugOption[] = [
-  { name: "Nadolol", tHalfHours: 22, qtRisk: "none" },
-  { name: "Flecainide", tHalfHours: 14, qtRisk: "moderate" },
-  { name: "Metoprolol", tHalfHours: 6, qtRisk: "none" },
-  { name: "Propranolol", tHalfHours: 5, qtRisk: "none" },
-  { name: "Atenolol", tHalfHours: 7, qtRisk: "none" },
-  { name: "Verapamil", tHalfHours: 8, qtRisk: "moderate" },
-  { name: "Mexiletine", tHalfHours: 12, qtRisk: "none" },
-  { name: "Amiodarone", tHalfHours: 2400, qtRisk: "high" },
-  { name: "Sotalol", tHalfHours: 12, qtRisk: "high" },
-  { name: "Dofetilide", tHalfHours: 10, qtRisk: "high" },
-  { name: "Ondansetron", tHalfHours: 4, qtRisk: "high" },
-  { name: "Azithromycin", tHalfHours: 68, qtRisk: "high" },
-  { name: "Ciprofloxacin", tHalfHours: 4, qtRisk: "moderate" },
-  { name: "Fluconazole", tHalfHours: 30, qtRisk: "moderate" },
-  { name: "Escitalopram", tHalfHours: 32, qtRisk: "moderate" },
+  // ── First-line for TKOS / CPVT ─────────────────────────
+  { name: "Nadolol", tHalfHours: 22, qtRisk: "none", category: "first-line",
+    description: "Preferred non-selective beta-blocker for CPVT/TKOS — suppresses catecholamine-triggered arrhythmias with long, stable coverage." },
+  { name: "Flecainide", tHalfHours: 14, qtRisk: "moderate", category: "first-line",
+    description: "Sodium channel blocker that also inhibits the ryanodine receptor (RyR2), directly targeting the calcium leak underlying CPVT/TKOS." },
+
+  // ── Alternative beta-blockers ──────────────────────────
+  { name: "Propranolol", tHalfHours: 5, qtRisk: "none", category: "alternative",
+    description: "Non-selective beta-blocker used when nadolol is unavailable — shorter half-life requires more frequent dosing." },
+  { name: "Carvedilol", tHalfHours: 8, qtRisk: "none", category: "alternative",
+    description: "Non-selective beta-blocker with additional alpha-1 blockade, providing vasodilation alongside heart rate control." },
+  { name: "Atenolol", tHalfHours: 7, qtRisk: "none", category: "alternative",
+    description: "Selective beta-1 blocker — less preferred for CPVT as studies show higher arrhythmic event rates vs. non-selective agents." },
+  { name: "Metoprolol", tHalfHours: 6, qtRisk: "none", category: "alternative",
+    description: "Selective beta-1 blocker with variable metabolism (CYP2D6) — inferior outcomes compared to nadolol in CPVT." },
+
+  // ── Reserve / refractory ───────────────────────────────
+  { name: "Verapamil", tHalfHours: 8, qtRisk: "moderate", category: "reserve",
+    description: "Calcium channel blocker that slows AV conduction — limited role in CPVT but may help manage concurrent atrial fibrillation." },
+  { name: "Mexiletine", tHalfHours: 12, qtRisk: "none", category: "reserve",
+    description: "Oral lidocaine analog that shortens action potential duration — adjunctive therapy for refractory ventricular arrhythmias." },
+  { name: "Amiodarone", tHalfHours: 2400, qtRisk: "high", category: "reserve",
+    description: "Broad-spectrum antiarrhythmic (multi-channel blocker) — last resort due to significant side effects and QT prolongation." },
+  { name: "Sotalol", tHalfHours: 12, qtRisk: "high", category: "reserve",
+    description: "Combined beta-blocker and potassium channel blocker — high QT prolongation risk limits use in TKOS patients." },
+
+  // ── QT-risk medications to monitor ─────────────────────
+  { name: "Dofetilide", tHalfHours: 10, qtRisk: "high", category: "qt-risk",
+    description: "Potassium channel blocker for atrial fibrillation — significant QT prolongation risk, contraindicated with QT-sensitive conditions." },
+  { name: "Ondansetron", tHalfHours: 4, qtRisk: "high", category: "qt-risk",
+    description: "Anti-nausea medication — prolongs QT interval and should be avoided or used cautiously in TKOS patients." },
+  { name: "Azithromycin", tHalfHours: 68, qtRisk: "high", category: "qt-risk",
+    description: "Common antibiotic with documented QT prolongation risk — safer alternatives should be preferred for TKOS patients." },
+  { name: "Ciprofloxacin", tHalfHours: 4, qtRisk: "moderate", category: "qt-risk",
+    description: "Fluoroquinolone antibiotic with moderate QT risk — use with caution and monitoring in TKOS patients." },
+  { name: "Fluconazole", tHalfHours: 30, qtRisk: "moderate", category: "qt-risk",
+    description: "Antifungal with moderate QT prolongation risk — dose-dependent effect, monitor closely if prescribed." },
+  { name: "Escitalopram", tHalfHours: 32, qtRisk: "moderate", category: "qt-risk",
+    description: "SSRI antidepressant with moderate QT risk — if needed, use lower doses with cardiac monitoring." },
 ];
 
 // ── Episode Intelligence (hard-coded UI) ────────────────

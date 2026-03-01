@@ -7,6 +7,7 @@ import type { Medication, DrugLevel } from "@/lib/types";
 import { useFetch, mutate } from "@/lib/api";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { DRUG_OPTIONS } from "@/lib/data/synthetic";
 
 interface MedCardProps {
   medication: Medication;
@@ -18,6 +19,7 @@ export function MedCard({ medication: med }: MedCardProps) {
 
   const lvl = levels?.find((l) => l.drug === med.drugName);
   const level = lvl ? Math.round(lvl.pctRemaining) : 0;
+  const drugInfo = DRUG_OPTIONS.find((d) => d.name.toLowerCase() === med.drugName.toLowerCase());
 
   const lastDose = lvl?.doses?.length
     ? lvl.doses.reduce((a, b) => (new Date(a.takenAt) > new Date(b.takenAt) ? a : b))
@@ -55,6 +57,10 @@ export function MedCard({ medication: med }: MedCardProps) {
           )}>{level}%</span>
         )}
       </div>
+
+      {drugInfo && (
+        <p className="text-xs text-muted-foreground mb-4 leading-relaxed">{drugInfo.description}</p>
+      )}
 
       <div className="grid grid-cols-2 gap-3 text-sm mb-4">
         <div><p className="text-xs text-muted-foreground">Dose</p><p className="font-medium">{med.doseMg} {med.doseUnit}</p></div>

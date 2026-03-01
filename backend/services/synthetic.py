@@ -248,26 +248,26 @@ def generate_synthetic_data(patient_id: int = 1) -> dict:
         for batch in [weather_batch[i:i+100] for i in range(0, len(weather_batch), 100)]:
             WeatherReading.insert_many(batch).execute()
 
-    # --- Episodes: 4-6 episodes clustered during troughs and after poor sleep ---
-    episode_targets = []
-    for day in range(_DAYS):
-        day_start = start + timedelta(days=day)
-        prev_poor = day > 0 and sleep_quality[day - 1] == "poor"
-        # Place episodes on days after poor sleep, during trough windows
-        if prev_poor:
-            # Morning trough (before first dose) and evening trough
-            episode_targets.append(day_start + timedelta(hours=7, minutes=random.randint(0, 60)))
-            episode_targets.append(day_start + timedelta(hours=18, minutes=random.randint(0, 120)))
-        elif random.random() < 0.3:
-            # Occasional episode on other days during trough
-            episode_targets.append(day_start + timedelta(hours=random.choice([7, 18, 19]),
-                                                          minutes=random.randint(0, 60)))
+    # --- Episodes: 6 deterministic episodes matching frontend intelligence layer ---
+    # Created newest-first so autoincrement IDs 1-6 match EPISODE_INSIGHTS.
+    # Spread across the full 7-day window with varied, authentic notes.
+    episode_specs = [
+        # (hours_ago, notes) — ID 1 = most recent, ID 6 = oldest
+        (3,   "Heart racing after barely sleeping, felt it walking to class"),
+        (26,  "Chest fluttering while sitting in lecture, came out of nowhere"),
+        (60,  "Felt dizzy and pounding walking up stairs from parking deck"),
+        (96,  "Random flutter watching TV — wasn't even doing anything"),
+        (132, "Woke up with chest thumping, skipped vitamins yesterday"),
+        (156, "Heart felt off during dinner, really cold outside today"),
+    ]
 
-    for ep_time in episode_targets:
-        if ep_time <= now:
+    for hours_ago, notes in episode_specs:
+        ep_time = now - timedelta(hours=hours_ago)
+        if ep_time >= start:
             Episode.create(
                 patient=patient_id,
                 recorded_at=ep_time,
+                notes=notes,
                 source="synthetic",
             )
             counts["episode_count"] += 1
