@@ -13,27 +13,27 @@ drugs:
         taken_at: "+3m"
 
 heart:
-  baseline_bpm: 58
+  baseline_bpm: 70
   noise_std:    2.0
   segments:
     - start: "0m"
       end:   "3m"
       pattern: normal
-      bpm: 58
+      bpm: 68
 
     - start: "3m"
       end:   "6m"
       pattern: normal
-      bpm: 76
+      bpm: 78
       bpm_std: 5.0
 
     - start: "6m"
       end:   "10m"
       pattern: normal
-      bpm: 70
+      bpm: 74
       bpm_std: 3.0
 
     - start: "10m"
       end:   "15m"
       pattern: normal
-      bpm: 64
+      bpm: 70
