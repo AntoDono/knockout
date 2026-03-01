@@ -30,21 +30,43 @@ npm run lint                     # ESLint
 cd backend && rm -f knockout.db && uv run python -c "from database import init_db; init_db()"
 ```
 
+## Documentation
+
+`docs/overview.md` — full project vision, the 6-layer architecture, and the three blind spots (ICD Gap, Visit Gap, Why Gap). Read this first for context.
+`docs/prob_statement.md` — hackathon problem statement (Track 3: Symptom Management for rare disease).
+`docs/plans/` — design documents and implementation plans for each layer.
+
 ## Architecture
 
 **Backend:** FastAPI (Python 3.13, uv) with Peewee ORM on SQLite (`knockout.db`).
 **Frontend:** Next.js 16, React 19, Tailwind CSS v4, D3.js for charts.
 
-### Backend module layout
+### API routes
 
 `server.py` is a thin FastAPI wiring file. All routes live in domain modules:
 
-| Module | Routes | Purpose |
-|---|---|---|
-| `sensor.py` | `/push`, `/stats`, WS `/ws` | Sensor Logger ingestion, live heart-rate WebSocket with AFib detection |
-| `drugs.py` | `/drugs`, `/doses`, `/levels` | Drug registry, dose logging, PK decay levels |
-| `patient.py` | `/patient/*` (7 endpoints) | Layer 1 clinical foundation — read-only patient data |
-| `reports.py` | `/report` | PDF cardiology report generation |
+```
+/push              POST   sensor.py    – ingest Sensor Logger payloads
+/stats             GET    sensor.py    – per-sensor request counts
+/ws                WS     sensor.py    – live HR stream + AFib detection
+
+/drugs             GET    drugs.py     – list registered drugs
+/drugs             POST   drugs.py     – register drug (auto-lookup half-life via Grok)
+/doses             GET    drugs.py     – list doses (?drug= filter)
+/doses             POST   drugs.py     – log a dose
+/doses/{id}        DELETE drugs.py     – delete a dose
+/levels            GET    drugs.py     – current PK decay levels
+
+/patient           GET    patient.py   – full profile + diagnoses + allergies
+/patient/icd       GET    patient.py   – device, zones, episodes, shock history
+/patient/icd/gap   GET    patient.py   – ICD gap boundaries (70–190 bpm)
+/patient/ecg       GET    patient.py   – 14 historical ECG readings
+/patient/thresholds GET   patient.py   – current static thresholds
+/patient/medications GET  patient.py   – active medications with PK params
+/patient/triggers  GET    patient.py   – known triggers with source/confidence
+
+/report            GET    reports.py   – generate cardiology PDF report
+```
 
 ### Database layer (`database.py`)
 
