@@ -1,0 +1,10 @@
+{
+  "minocycline": {
+    "reasoning": "According to StatPearls (NCBI), the serum half-life of minocycline varies between 11 and 24 hours, with an average of 17 hours. Other sources like Wikipedia report 11-26 hours in healthy people, DrugBank 11.1-22.1 hours for oral capsules. Taking the average of 17 hours as representative. 17 hours * 3600 seconds/hour = 61,200 seconds.",
+    "halflife": 61200
+  },
+  "nadalol": {
+    "reasoning": "The typical half-life of nadolol is 20-24 hours according to DrugBank and FDA label. The median is 22 hours. So the half-life is 79,200 seconds.",
+    "halflife": 79200
+  }
+}
