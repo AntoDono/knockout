@@ -1,8 +1,10 @@
 "use client";
 import { useState } from "react";
-import { FileText, Lock } from "lucide-react";
+import { FileText, Lock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { fetchBlob } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const SPECIALISTS = [
   { id: "cardiology", label: "Cardiology", available: true },
@@ -13,11 +15,11 @@ const SPECIALISTS = [
 
 const SECTIONS = [
   { id: "executive", label: "Executive Summary", locked: true },
-  { id: "episodes", label: "Episode Library", locked: false },
-  { id: "pk", label: "Pharmacokinetic Analysis", locked: false },
-  { id: "autonomic", label: "Autonomic Trends", locked: false },
-  { id: "triggers", label: "Trigger Analysis", locked: false },
-  { id: "context", label: "Supporting Context", locked: false },
+  { id: "episode_library", label: "Episode Library", locked: false },
+  { id: "pharmacokinetic_analysis", label: "Pharmacokinetic Analysis", locked: false },
+  { id: "autonomic_trends", label: "Autonomic Trends", locked: false },
+  { id: "trigger_analysis", label: "Trigger Analysis", locked: false },
+  { id: "supporting_context", label: "Supporting Context", locked: false },
 ];
 
 const DATE_RANGES = [
@@ -30,6 +32,7 @@ export function ReportBuilder() {
   const [specialist, setSpecialist] = useState("cardiology");
   const [dateRange, setDateRange] = useState("4w");
   const [selectedSections, setSelectedSections] = useState(new Set(SECTIONS.map((s) => s.id)));
+  const [generating, setGenerating] = useState(false);
 
   const toggleSection = (id: string) => {
     const section = SECTIONS.find((s) => s.id === id);
@@ -37,6 +40,29 @@ export function ReportBuilder() {
     const next = new Set(selectedSections);
     if (next.has(id)) next.delete(id); else next.add(id);
     setSelectedSections(next);
+  };
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    try {
+      const optionalSections = [...selectedSections].filter((s) => s !== "executive");
+      const query = optionalSections.length > 0
+        ? `?type=${specialist}&sections=${optionalSections.join(",")}`
+        : `?type=${specialist}`;
+
+      const blob = await fetchBlob(`/report${query}`);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `guardrail_${specialist}_report.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Report downloaded");
+    } catch {
+      toast.error("Failed to generate report");
+    } finally {
+      setGenerating(false);
+    }
   };
 
   return (
@@ -95,8 +121,12 @@ export function ReportBuilder() {
         </div>
       </div>
 
-      <Button size="lg" className="w-full rounded-xl h-12 text-base">
-        <FileText className="h-5 w-5 mr-2" />Generate Report
+      <Button size="lg" className="w-full rounded-xl h-12 text-base" onClick={handleGenerate} disabled={generating}>
+        {generating ? (
+          <><Loader2 className="h-5 w-5 mr-2 animate-spin" />Generating...</>
+        ) : (
+          <><FileText className="h-5 w-5 mr-2" />Generate Report</>
+        )}
       </Button>
     </div>
   );

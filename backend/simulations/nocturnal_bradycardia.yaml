@@ -1,0 +1,79 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Scenario: Nocturnal Bradycardia – Over-Medication Risk
+# ──────────────────────────────────────────────────────────────────────────────
+# What this demonstrates
+# ─────────────────────
+# The patient took their evening nadolol dose recently, so plasma levels are
+# high.  During deep sleep, heart rate drops below safe thresholds — the
+# combination of maximal beta-blockade and parasympathetic sleep dominance
+# pushes the rate dangerously low.  This demonstrates over-medication risk
+# that Guardrail can flag to the physician.
+#
+# Speed 600× compresses 6 hours into ~36 seconds of wall time.
+# ──────────────────────────────────────────────────────────────────────────────
+
+name:        "Nocturnal Bradycardia"
+description: >
+  Fresh nadolol dose + deep sleep produces dangerous bradycardia below safe
+  thresholds.  Demonstrates the over-medication risk that passive monitoring
+  can catch.
+speed:    600
+duration: "6h"
+
+drugs:
+  - name: nadolol
+    doses:
+      # Evening dose taken 1 hour ago – peak levels
+      - amount_mg: 40
+        taken_at: "-1h"
+      # Previous morning dose
+      - amount_mg: 40
+        taken_at: "-13h"
+
+  - name: spironolactone
+    doses:
+      - amount_mg: 25
+        taken_at: "-4h"
+
+heart:
+  baseline_bpm: 62
+  noise_std:    1.5
+  segments:
+    # Pre-sleep relaxation – drug fully on board
+    - start:   "0h"
+      end:     "1h"
+      pattern: normal
+      bpm:     62
+
+    # Sleep onset – rate begins to fall
+    - start:   "1h"
+      end:     "2h"
+      pattern: bradycardia
+      bpm:     55
+
+    # Deep sleep – dangerous bradycardia
+    - start:   "2h"
+      end:     "3h"
+      pattern: bradycardia
+      bpm:     42
+      bpm_std: 2.0
+
+    # REM phase – slight recovery
+    - start:   "3h"
+      end:     "4h"
+      pattern: normal
+      bpm:     50
+
+    # Second deep sleep cycle – lowest point
+    - start:   "4h"
+      end:     "5h"
+      pattern: bradycardia
+      bpm:     38
+      bpm_std: 2.5
+
+    # Pre-wake – autonomic activation, slow recovery
+    - start:   "5h"
+      end:     "6h"
+      pattern: normal
+      bpm:     58
+      bpm_std: 3.0

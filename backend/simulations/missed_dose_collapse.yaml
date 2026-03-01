@@ -1,0 +1,75 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Scenario: Missed Dose Collapse
+# ──────────────────────────────────────────────────────────────────────────────
+# What this demonstrates
+# ─────────────────────
+# A TKOS patient misses both their morning and evening nadolol doses.  Over
+# three hours, plasma levels decay well below therapeutic range.  Heart rate
+# gradually climbs as beta-blockade wears off.  A brief SVT episode fires
+# in the ICD gap (below detection threshold) before self-terminating.
+#
+# Speed 300× compresses 3 hours into ~36 seconds of wall time.
+# ──────────────────────────────────────────────────────────────────────────────
+
+name:        "Missed Dose Collapse"
+description: >
+  Patient misses both morning and evening nadolol.  Plasma levels fall to near
+  zero, HR escalates, and a brief SVT episode emerges in the ICD gap before
+  self-terminating.
+speed:    300
+duration: "3h"
+
+drugs:
+  - name: nadolol
+    doses:
+      - amount_mg: 40
+        taken_at: "-20h"
+
+  - name: spironolactone
+    doses:
+      - amount_mg: 25
+        taken_at: "-30h"
+
+heart:
+  baseline_bpm: 68
+  noise_std:    2.0
+  segments:
+    # Resting – drug still marginally present
+    - start:   "0m"
+      end:     "30m"
+      pattern: normal
+      bpm:     68
+
+    # Gradual rise as beta-blockade fades
+    - start:   "30m"
+      end:     "70m"
+      pattern: normal
+      bpm:     78
+      bpm_std: 4.0
+
+    # Compensatory tachycardia – sympathetic tone unmasked
+    - start:   "70m"
+      end:     "110m"
+      pattern: tachycardia
+      bpm:     105
+      bpm_std: 6.0
+
+    # Brief SVT episode in ICD gap
+    - start:   "110m"
+      end:     "130m"
+      pattern: afib
+      bpm_mean: 145
+      bpm_std: 18.0
+
+    # Self-termination – rate drops back but remains elevated
+    - start:   "130m"
+      end:     "160m"
+      pattern: normal
+      bpm:     82
+      bpm_std: 5.0
+
+    # Settling – still no dose, rate remains above baseline
+    - start:   "160m"
+      end:     "180m"
+      pattern: normal
+      bpm:     78
