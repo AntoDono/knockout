@@ -7,15 +7,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { DRUG_OPTIONS } from "@/lib/data/synthetic";
+import { mutate as apiMutate } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import type { DrugOption } from "@/lib/types";
 
-export function AddMedModal() {
+interface AddMedModalProps {
+  onAdded?: () => void;
+}
+
+export function AddMedModal({ onAdded }: AddMedModalProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<DrugOption | null>(null);
   const [dose, setDose] = useState("");
   const [frequency, setFrequency] = useState("once_daily");
+  const [submitting, setSubmitting] = useState(false);
 
   const results = search.length >= 2
     ? DRUG_OPTIONS.filter((d) => d.name.toLowerCase().includes(search.toLowerCase())).slice(0, 5)
@@ -26,13 +33,26 @@ export function AddMedModal() {
     setSearch(drug.name);
   };
 
-  const handleAdd = () => {
-    // Demo only — would POST to backend in production
-    setOpen(false);
-    setSearch("");
-    setSelected(null);
-    setDose("");
-    setFrequency("once_daily");
+  const handleAdd = async () => {
+    if (!selected || !dose) return;
+    setSubmitting(true);
+    try {
+      await apiMutate("/drugs", {
+        name: selected.name.toLowerCase(),
+        halfLifeS: selected.tHalfHours * 3600,
+      });
+      toast.success("Medication registered", { description: `${selected.name} added.` });
+      setOpen(false);
+      setSearch("");
+      setSelected(null);
+      setDose("");
+      setFrequency("once_daily");
+      onAdded?.();
+    } catch {
+      toast.error("Failed to add medication");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -124,15 +144,15 @@ export function AddMedModal() {
 
               {selected.qtRisk === "high" && (
                 <div className="flex items-start gap-2 p-3 rounded-xl bg-red-50 border border-red-200">
-                  <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                  <AlertTriangle className="h-4 w-4 text-red-500 mt-0.5 shrink-0" />
                   <p className="text-xs text-red-700">
                     This medication has <strong>high QT prolongation risk</strong>. Consult your cardiologist before combining with current medications.
                   </p>
                 </div>
               )}
 
-              <Button onClick={handleAdd} className="w-full" disabled={!dose}>
-                Add {selected.name}
+              <Button onClick={handleAdd} className="w-full" disabled={!dose || submitting}>
+                {submitting ? "Adding..." : `Add ${selected.name}`}
               </Button>
             </>
           )}

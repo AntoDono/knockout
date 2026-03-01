@@ -190,6 +190,7 @@ def get_medications():
             "drug_class": m.drug_class,
             "is_cardiac": m.is_cardiac,
             "dose_mg": m.dose_mg,
+            "dose_unit": m.dose_unit,
             "frequency": m.frequency,
             "dose_times": json.loads(m.dose_times) if m.dose_times else [],
             "half_life_hours": m.half_life_hours,

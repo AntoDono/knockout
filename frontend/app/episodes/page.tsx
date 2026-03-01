@@ -1,8 +1,9 @@
 "use client";
 import { useState } from "react";
-import { EPISODES } from "@/lib/data/synthetic";
+import { useFetch } from "@/lib/api";
 import { EpisodeCard } from "@/components/episodes/EpisodeCard";
 import { cn } from "@/lib/utils";
+import type { Episode } from "@/lib/types";
 
 const FILTERS = [
   { label: "7 days", days: 7 },
@@ -13,13 +14,15 @@ const FILTERS = [
 export default function EpisodesPage() {
   const [now] = useState(() => Date.now());
   const [filterDays, setFilterDays] = useState<number | null>(null);
+  const { data: episodes } = useFetch<Episode[]>("/episodes");
 
+  const all = episodes ?? [];
   const filtered = filterDays
-    ? EPISODES.filter((ep) => {
+    ? all.filter((ep) => {
         const epTime = new Date(ep.recordedAt).getTime();
         return now - epTime <= filterDays * 24 * 60 * 60 * 1000;
       })
-    : EPISODES;
+    : all;
 
   return (
     <div className="space-y-6 animate-fade-in">
