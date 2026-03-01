@@ -1,8 +1,16 @@
 "use client";
 import { useState } from "react";
-import { FileText, Lock } from "lucide-react";
+import { FileText, Lock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
+const SECTION_ID_TO_BACKEND: Record<string, string> = {
+  episodes: "episode_library",
+  pk: "pharmacokinetic_analysis",
+  autonomic: "autonomic_trends",
+  triggers: "trigger_analysis",
+  context: "supporting_context",
+};
 
 const SPECIALISTS = [
   { id: "cardiology", label: "Cardiology", available: true },
@@ -30,6 +38,39 @@ export function ReportBuilder() {
   const [specialist, setSpecialist] = useState("cardiology");
   const [dateRange, setDateRange] = useState("4w");
   const [selectedSections, setSelectedSections] = useState(new Set(SECTIONS.map((s) => s.id)));
+  const [generating, setGenerating] = useState(false);
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    try {
+      const backendSections = Array.from(selectedSections)
+        .map((id) => SECTION_ID_TO_BACKEND[id])
+        .filter(Boolean);
+
+      const params = new URLSearchParams();
+      params.set("type", specialist);
+      if (backendSections.length > 0) {
+        params.set("sections", backendSections.join(","));
+      }
+
+      const res = await fetch(`http://localhost:8080/report?${params}`);
+      if (!res.ok) throw new Error(`Report generation failed (${res.status})`);
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `guardrail-${specialist}-report.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to generate report");
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const toggleSection = (id: string) => {
     const section = SECTIONS.find((s) => s.id === id);
@@ -95,8 +136,9 @@ export function ReportBuilder() {
         </div>
       </div>
 
-      <Button size="lg" className="w-full rounded-xl h-12 text-base">
-        <FileText className="h-5 w-5 mr-2" />Generate Report
+      <Button size="lg" className="w-full rounded-xl h-12 text-base" onClick={handleGenerate} disabled={generating}>
+        {generating ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <FileText className="h-5 w-5 mr-2" />}
+        {generating ? "Generating…" : "Generate Report"}
       </Button>
     </div>
   );
