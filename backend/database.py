@@ -24,6 +24,7 @@ from peewee import (
     SqliteDatabase,
     Model,
     AutoField,
+    BooleanField,
     CharField,
     FloatField,
     IntegerField,
@@ -94,13 +95,244 @@ class Dose(BaseModel):
 
 
 # ---------------------------------------------------------------------------
+# Layer 1: Clinical Foundation Models
+# ---------------------------------------------------------------------------
+
+
+class Patient(BaseModel):
+    """Core patient profile."""
+    id = AutoField()
+    first_name = CharField()
+    last_name = CharField()
+    date_of_birth = CharField()  # ISO date string
+    sex = CharField()
+    height_cm = FloatField(null=True)
+    weight_kg = FloatField(null=True)
+    bmi = FloatField(null=True)
+    primary_diagnosis = CharField()
+    gene_variant = CharField(null=True)
+    diagnosis_date = CharField(null=True)
+    has_myopathy = BooleanField(default=False)
+    has_sick_sinus = BooleanField(default=False)
+    cardiac_arrest_history = TextField(null=True)
+    sympathetic_denervation = BooleanField(default=False)
+
+    class Meta:
+        table_name = "patients"
+
+
+class PatientDiagnosis(BaseModel):
+    id = AutoField()
+    patient = ForeignKeyField(Patient, backref="diagnoses", on_delete="CASCADE")
+    diagnosis = CharField()
+    noted_date = CharField(null=True)
+    notes = TextField(null=True)
+
+    class Meta:
+        table_name = "patient_diagnoses"
+
+
+class PatientAllergy(BaseModel):
+    id = AutoField()
+    patient = ForeignKeyField(Patient, backref="allergies", on_delete="CASCADE")
+    allergen = CharField()
+    reaction = TextField(null=True)
+
+    class Meta:
+        table_name = "patient_allergies"
+
+
+class KnownTrigger(BaseModel):
+    id = AutoField()
+    patient = ForeignKeyField(Patient, backref="triggers", on_delete="CASCADE")
+    trigger_type = CharField()
+    source = CharField(null=True)
+    confidence = CharField(default="documented")
+    notes = TextField(null=True)
+
+    class Meta:
+        table_name = "known_triggers"
+
+
+class Medication(BaseModel):
+    """Patient medication — extends existing Drug model with clinical details."""
+    id = AutoField()
+    patient = ForeignKeyField(Patient, backref="medications", on_delete="CASCADE")
+    drug_name = CharField()
+    brand_name = CharField(null=True)
+    drug_class = CharField(null=True)
+    is_cardiac = BooleanField(default=False)
+    dose_mg = FloatField()
+    dose_unit = CharField(default="mg")
+    frequency = CharField()
+    dose_times = TextField()  # JSON array: '["09:00","20:00"]'
+    half_life_hours = FloatField(null=True)
+    dose_per_kg = FloatField(null=True)
+    started_date = CharField(null=True)
+    is_active = BooleanField(default=True)
+    notes = TextField(null=True)
+
+    class Meta:
+        table_name = "medications"
+
+
+class ICDDevice(BaseModel):
+    id = AutoField()
+    patient = ForeignKeyField(Patient, backref="icd_devices", on_delete="CASCADE")
+    manufacturer = CharField()
+    model = CharField()
+    serial_number = CharField(null=True)
+    implant_date = CharField()
+    lead_config = CharField(null=True)
+    pacing_mode = CharField(null=True)
+    lower_rate_limit_bpm = IntegerField(null=True)
+    max_tracking_rate_bpm = IntegerField(null=True)
+    battery_life_years = IntegerField(null=True)
+    battery_status = CharField(null=True)
+    atrial_pacing_pct = IntegerField(null=True)
+    ventricular_pacing_pct = IntegerField(null=True)
+    atrial_lead_impedance = IntegerField(null=True)
+    atrial_sensing_mv = FloatField(null=True)
+    ventricular_lead_impedance = IntegerField(null=True)
+    ventricular_sensing_mv = FloatField(null=True)
+    shock_impedance_ohms = IntegerField(null=True)
+    last_interrogation_date = CharField(null=True)
+    last_shock_date = CharField(null=True)
+    notes = TextField(null=True)
+
+    class Meta:
+        table_name = "icd_device"
+
+
+class ICDZone(BaseModel):
+    id = AutoField()
+    device = ForeignKeyField(ICDDevice, backref="zones", on_delete="CASCADE")
+    zone_name = CharField()       # VT, VF, ATR
+    zone_type = CharField()       # therapy, monitor, mode_switch
+    rate_cutoff_bpm = IntegerField()
+    therapies = TextField(null=True)  # JSON array
+    atp_enabled = BooleanField(default=False)
+    programmed_date = CharField(null=True)
+    notes = TextField(null=True)
+
+    class Meta:
+        table_name = "icd_zones"
+
+
+class ICDEpisode(BaseModel):
+    id = AutoField()
+    device = ForeignKeyField(ICDDevice, backref="episodes", on_delete="CASCADE")
+    episode_datetime = CharField()
+    zone_triggered = CharField(null=True)
+    detected_rate_bpm = IntegerField(null=True)
+    avg_v_rate_bpm = IntegerField(null=True)
+    duration_seconds = FloatField(null=True)
+    therapy_delivered = CharField(null=True)
+    therapy_result = CharField(null=True)
+    classification = CharField(null=True)
+    activity_at_onset = CharField(null=True)
+    notes = TextField(null=True)
+
+    class Meta:
+        table_name = "icd_episodes"
+
+
+class ICDShockHistory(BaseModel):
+    id = AutoField()
+    patient = ForeignKeyField(Patient, backref="shock_history", on_delete="CASCADE")
+    event_date = CharField(null=True)
+    event_type = CharField(null=True)
+    context = TextField(null=True)
+    device_era = CharField(null=True)
+
+    class Meta:
+        table_name = "icd_shock_history"
+
+
+class ECGReading(BaseModel):
+    id = AutoField()
+    patient = ForeignKeyField(Patient, backref="ecg_readings", on_delete="CASCADE")
+    reading_date = CharField()
+    hr_bpm = IntegerField(null=True)
+    pr_ms = IntegerField(null=True)
+    qrs_ms = IntegerField(null=True)
+    qt_ms = IntegerField(null=True)
+    qtc_ms = IntegerField(null=True)
+    findings = TextField(null=True)
+    source = CharField(default="clinic_ecg")
+    is_anomalous = BooleanField(default=False)
+    notes = TextField(null=True)
+
+    class Meta:
+        table_name = "ecg_readings"
+
+
+class StaticThreshold(BaseModel):
+    id = AutoField()
+    patient = ForeignKeyField(Patient, backref="thresholds", on_delete="CASCADE")
+    effective_date = CharField()
+    source = CharField(null=True)
+    clinician = CharField(null=True)
+    resting_hr_bpm = IntegerField(null=True)
+    ectopy_onset_hr_bpm = IntegerField(null=True)
+    prescribed_hr_ceiling = IntegerField(null=True)
+    qrs_baseline_ms = IntegerField(null=True)
+    qtc_baseline_ms = IntegerField(null=True)
+    qrs_widening_alert_pct = FloatField(default=0.25)
+    qrs_absolute_alert_ms = IntegerField(null=True)
+    qtc_upper_limit_ms = IntegerField(default=500)
+    icd_gap_lower_bpm = IntegerField(null=True)
+    icd_gap_upper_bpm = IntegerField(null=True)
+    notes = TextField(null=True)
+    is_current = BooleanField(default=True)
+
+    class Meta:
+        table_name = "static_thresholds"
+
+
+class ClinicalNote(BaseModel):
+    id = AutoField()
+    patient = ForeignKeyField(Patient, backref="clinical_notes", on_delete="CASCADE")
+    visit_date = CharField()
+    clinician = CharField(null=True)
+    facility = CharField(null=True)
+    note_type = CharField(null=True)
+    raw_text = TextField(null=True)
+    extracted_json = TextField(null=True)
+
+    class Meta:
+        table_name = "clinical_notes"
+
+
+class SurgicalHistory(BaseModel):
+    id = AutoField()
+    patient = ForeignKeyField(Patient, backref="surgeries", on_delete="CASCADE")
+    procedure_date = CharField()
+    procedure_name = CharField()
+    surgeon = CharField(null=True)
+    facility = CharField(null=True)
+    laterality = CharField(null=True)
+    notes = TextField(null=True)
+
+    class Meta:
+        table_name = "surgical_history"
+
+
+_LAYER1_MODELS = [
+    Patient, PatientDiagnosis, PatientAllergy, KnownTrigger,
+    Medication, ICDDevice, ICDZone, ICDEpisode, ICDShockHistory,
+    ECGReading, StaticThreshold, ClinicalNote, SurgicalHistory,
+]
+
+
+# ---------------------------------------------------------------------------
 # Initialisation
 # ---------------------------------------------------------------------------
 
 def init_db() -> None:
-    """Create tables and seed Drug rows from halflife.json."""
+    """Create tables and seed data."""
     db.connect(reuse_if_open=True)
-    db.create_tables([Drug, Dose], safe=True)
+    db.create_tables([Drug, Dose] + _LAYER1_MODELS, safe=True)
     _seed_from_cache()
 
 
