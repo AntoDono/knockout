@@ -89,7 +89,7 @@ export function EpisodeContext({ episode }: EpisodeContextProps) {
   const hrDeviation = Math.round(((avgHr - BASELINES.hr.mean) / BASELINES.hr.mean) * 100);
   const hrvDeviation = Math.round(((avgHrv - BASELINES.hrv.mean) / BASELINES.hrv.mean) * 100);
   const tempNum = parseFloat(avgTemp as string);
-  const tempDeviation = !isNaN(tempNum) ? Math.round(((tempNum - BASELINES.temperature.mean) / BASELINES.temperature.mean) * 100) : null;
+  const tempDeviationC = !isNaN(tempNum) ? +(tempNum - BASELINES.temperature.mean).toFixed(2) : null;
 
   // Look up context narrative
   const insight = EPISODE_INSIGHTS.find((i) => i.id === episode.id);
@@ -108,7 +108,7 @@ export function EpisodeContext({ episode }: EpisodeContextProps) {
         <MiniStat icon={Heart} label="Avg HR" value={`${avgHr}`} unit="bpm" color="text-red-500" comparison={`${hrDeviation > 0 ? "+" : ""}${hrDeviation}% vs baseline`} />
         <MiniStat icon={Heart} label="HR Range" value={`${minHr}–${maxHr}`} unit="bpm" color="text-red-400" />
         <MiniStat icon={Activity} label="Avg HRV" value={`${avgHrv}`} unit="ms" color="text-primary" comparison={`${hrvDeviation > 0 ? "+" : ""}${hrvDeviation}% vs baseline`} />
-        <MiniStat icon={Thermometer} label="Body Temp" value={avgTemp} unit="°C" color="text-amber-500" comparison={tempDeviation !== null ? `${tempDeviation > 0 ? "+" : ""}${tempDeviation}% vs baseline` : undefined} />
+        <MiniStat icon={Thermometer} label="Body Temp" value={avgTemp} unit="°C" color="text-amber-500" comparison={tempDeviationC !== null ? `${tempDeviationC >= 0 ? "+" : ""}${tempDeviationC}° vs avg` : undefined} />
         {nearestSleep && (
           <MiniStat
             icon={Moon}
@@ -116,7 +116,7 @@ export function EpisodeContext({ episode }: EpisodeContextProps) {
             value={`${Math.floor(nearestSleep.durationMinutes / 60)}h ${nearestSleep.durationMinutes % 60}m`}
             unit={nearestSleep.quality}
             color="text-indigo-500"
-            comparison={`avg ${Math.floor(BASELINES.sleep.meanDurationMin / 60)}h ${Math.round(BASELINES.sleep.meanDurationMin % 60)}m`}
+            comparison={`${nearestSleep.deepMinutes}m deep · ${nearestSleep.remMinutes}m REM · ${nearestSleep.awakenings} wake`}
           />
         )}
         {avgWeatherTemp !== null && (
@@ -126,7 +126,7 @@ export function EpisodeContext({ episode }: EpisodeContextProps) {
             value={`${avgWeatherTemp}°C`}
             unit={`${avgHumidity}% humid`}
             color="text-sky-500"
-            comparison={`avg ${BASELINES.weather.meanTempC}°C`}
+            comparison={`${avgWeatherTemp - BASELINES.weather.meanTempC >= 0 ? "+" : ""}${Math.round(avgWeatherTemp - BASELINES.weather.meanTempC)}° vs weekly avg`}
           />
         )}
       </div>
