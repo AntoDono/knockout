@@ -9,13 +9,16 @@ from database import (
     Drug, Dose, Patient, PatientDiagnosis, PatientAllergy, KnownTrigger,
     Medication, ICDDevice, ICDZone, ICDEpisode, ICDShockHistory,
     ECGReading, StaticThreshold, ClinicalNote, SurgicalHistory,
+    HeartRateReading, HRVReading, SleepRecord,
+    TemperatureReading, WeatherReading, Episode,
 )
 
-# Will be extended in Task 2 with Layer 2 models
 ALL_MODELS = [
     Drug, Dose, Patient, PatientDiagnosis, PatientAllergy, KnownTrigger,
     Medication, ICDDevice, ICDZone, ICDEpisode, ICDShockHistory,
     ECGReading, StaticThreshold, ClinicalNote, SurgicalHistory,
+    HeartRateReading, HRVReading, SleepRecord,
+    TemperatureReading, WeatherReading, Episode,
 ]
 
 _test_db = SqliteDatabase(":memory:", pragmas={"foreign_keys": 1})
