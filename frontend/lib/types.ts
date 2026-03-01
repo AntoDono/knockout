@@ -225,6 +225,7 @@ export interface HeartUpdate {
   latestBpm: number | null;
   bpmBufferSize: number;
   afib: AfibData | null;
+  afibEventId: string | null;
   drugLevels: DrugLevel[];
   simName?: string;
   simTimeS?: number;

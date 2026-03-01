@@ -1,0 +1,44 @@
+# Emotional stress triggers AFib in the ICD gap
+name:        "Stress-Induced AFib"
+description: "Sympathetic surge from emotional stress triggers AFib episode."
+speed:    300
+duration: "18m"
+
+drugs:
+  - name: nadolol
+    doses:
+      - amount_mg: 40
+        taken_at: "-11h"
+
+heart:
+  baseline_bpm: 72
+  noise_std:    2.5
+  segments:
+    - start: "0m"
+      end:   "5m"
+      pattern: normal
+      bpm: 72
+
+    - start: "5m"
+      end:   "7m"
+      pattern: normal
+      bpm: 80
+      bpm_std: 4.0
+
+    - start: "7m"
+      end:   "9m"
+      pattern: tachycardia
+      bpm: 95
+      bpm_std: 5.0
+
+    - start:    "9m"
+      end:      "14m"
+      pattern:  afib
+      bpm_mean: 118
+      bpm_std:  26
+
+    - start: "14m"
+      end:   "18m"
+      pattern: normal
+      bpm: 78
+      bpm_std: 4.0

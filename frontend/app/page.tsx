@@ -8,6 +8,7 @@ import { DrugChart } from "@/components/dashboard/DrugChart";
 import { RecentEpisodes } from "@/components/dashboard/RecentEpisodes";
 import { ICDGapMonitor } from "@/components/dashboard/ICDGapMonitor";
 import { ActiveMeds } from "@/components/dashboard/ActiveMeds";
+import { AfibConfirmDialog } from "@/components/dashboard/AfibConfirmDialog";
 import { useFetch } from "@/lib/api";
 import { useVitals, useHeartSocket } from "@/hooks/useVitals";
 import { cn } from "@/lib/utils";
@@ -118,18 +119,6 @@ export default function DashboardPage() {
           </span>
         </div>
 
-        {socket.simName && (
-          <>
-            <div className="h-4 w-px bg-border" />
-            <span className="text-xs text-primary font-medium">{socket.simName}</span>
-            {socket.simTimeS != null && (
-              <span className="text-xs text-muted-foreground">
-                {formatSimTime(socket.simTimeS)}
-              </span>
-            )}
-          </>
-        )}
-
         <div className="h-4 w-px bg-border" />
 
         {hasAfibData ? (
@@ -213,6 +202,12 @@ export default function DashboardPage() {
           <ActiveMeds drugLevels={socket.drugLevels} />
         </div>
       </div>
+
+      <AfibConfirmDialog
+        afibDetected={afibDetected}
+        afibEventId={socket.afibEventId}
+        confidence={afib?.confidence ?? null}
+      />
     </div>
   );
 }

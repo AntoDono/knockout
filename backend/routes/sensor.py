@@ -10,6 +10,7 @@ import json
 import logging
 import os
 import threading
+import uuid
 from collections import deque
 from dataclasses import asdict
 from datetime import datetime, timezone
@@ -44,19 +45,57 @@ _bpm_buffer: deque[float] = deque(maxlen=120)
 _ws_clients: set[WebSocket] = set()
 _afib_alert_sent: bool = False
 
+# AFib feedback: snapshots of BPM windows keyed by event ID.
+# _healthy_buffer accumulates readings one at a time during non-AFib.
+# _healthy_window is only frozen from _healthy_buffer when confidence is
+# well below threshold, so transition-period contamination is excluded.
+_afib_snapshots: dict[str, dict] = {}
+_healthy_buffer: deque[float] = deque(maxlen=120)
+_healthy_window: list[float] = []
+_prev_afib_detected: bool = False
+_HEALTHY_CONF_CEILING = 0.25  # only snapshot when confidence is clearly safe
+
 
 # ---------------------------------------------------------------------------
 # WebSocket helpers
 # ---------------------------------------------------------------------------
 
 def _build_heart_payload(latest_bpm: float | None) -> dict:
+    global _prev_afib_detected
+
     n = len(_bpm_buffer)
     buf = list(_bpm_buffer)
 
     afib_data = None
+    afib_event_id = None
     if n >= 10:
         result = detect_afib(buf)
         afib_data = asdict(result)
+
+        if result.afib_detected:
+            if not _prev_afib_detected:
+                # Rising edge: use the frozen clean snapshot as the paired sample
+                event_id = uuid.uuid4().hex[:12]
+                _afib_snapshots[event_id] = {
+                    "bpm_readings": buf[:],
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "afib_metrics": afib_data,
+                    "drug_levels": get_current_levels(),
+                    "healthy_snapshot": list(_healthy_window) if _healthy_window else None,
+                }
+                afib_event_id = event_id
+            else:
+                if _afib_snapshots:
+                    afib_event_id = list(_afib_snapshots.keys())[-1]
+            _prev_afib_detected = True
+        else:
+            _prev_afib_detected = False
+            if latest_bpm is not None:
+                _healthy_buffer.append(latest_bpm)
+            # Only freeze the snapshot when confidence is well below threshold
+            # so transition-period readings never contaminate it
+            if result.confidence <= _HEALTHY_CONF_CEILING and len(_healthy_buffer) >= 10:
+                _healthy_window[:] = list(_healthy_buffer)
 
     return {
         "type": "heart_update",
@@ -64,6 +103,7 @@ def _build_heart_payload(latest_bpm: float | None) -> dict:
         "latest_bpm": latest_bpm,
         "bpm_buffer_size": n,
         "afib": afib_data,
+        "afib_event_id": afib_event_id,
         "drug_levels": get_current_levels(),
     }
 
@@ -77,6 +117,18 @@ async def _broadcast(message: str) -> None:
             dead.append(ws)
     for ws in dead:
         _ws_clients.discard(ws)
+
+
+def _get_current_location() -> tuple[float, float] | None:
+    """Return (lat, lon) via IP geolocation."""
+    try:
+        import geocoder
+        g = geocoder.ip("me")
+        if g.ok and g.latlng:
+            return tuple(g.latlng)
+    except Exception:
+        log.debug("IP geolocation failed", exc_info=True)
+    return None
 
 
 def _check_afib_alert(afib_data: dict | None) -> None:
@@ -99,6 +151,10 @@ def _check_afib_alert(afib_data: dict | None) -> None:
                 f"⚠️ AFib detected (confidence {confidence:.0%}). "
                 "Check on the patient right now."
             )
+            loc = _get_current_location()
+            if loc:
+                lat, lon = loc
+                body += f"\n📍 Last known location: https://maps.google.com/?q={lat},{lon}"
             threading.Thread(
                 target=_send_alert, args=(alert_to, body), daemon=True
             ).start()

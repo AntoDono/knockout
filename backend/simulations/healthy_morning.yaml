@@ -1,0 +1,39 @@
+# Morning wake-up — slight ortho response, stable sinus
+name:        "Healthy – Morning Routine"
+description: "Wake-up with mild orthostatic HR bump. Settles after morning dose."
+speed:    300
+duration: "15m"
+
+drugs:
+  - name: nadolol
+    doses:
+      - amount_mg: 40
+        taken_at: "-12h"
+      - amount_mg: 40
+        taken_at: "+3m"
+
+heart:
+  baseline_bpm: 58
+  noise_std:    2.0
+  segments:
+    - start: "0m"
+      end:   "3m"
+      pattern: normal
+      bpm: 58
+
+    - start: "3m"
+      end:   "6m"
+      pattern: normal
+      bpm: 76
+      bpm_std: 5.0
+
+    - start: "6m"
+      end:   "10m"
+      pattern: normal
+      bpm: 70
+      bpm_std: 3.0
+
+    - start: "10m"
+      end:   "15m"
+      pattern: normal
+      bpm: 64

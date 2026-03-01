@@ -1,0 +1,42 @@
+# Vagal AFib triggered after a large meal
+name:        "Post-Meal Vagal AFib"
+description: "Vagal surge after eating triggers low-rate AFib — subtle but real."
+speed:    300
+duration: "20m"
+
+drugs:
+  - name: nadolol
+    doses:
+      - amount_mg: 40
+        taken_at: "-9h"
+
+heart:
+  baseline_bpm: 64
+  noise_std:    2.0
+  segments:
+    - start: "0m"
+      end:   "5m"
+      pattern: normal
+      bpm: 64
+
+    - start: "5m"
+      end:   "8m"
+      pattern: normal
+      bpm: 60
+      bpm_std: 2.0
+
+    - start: "8m"
+      end:   "10m"
+      pattern: bradycardia
+      bpm: 56
+
+    - start:    "10m"
+      end:      "16m"
+      pattern:  afib
+      bpm_mean: 82
+      bpm_std:  18
+
+    - start: "16m"
+      end:   "20m"
+      pattern: normal
+      bpm: 66

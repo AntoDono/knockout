@@ -1,0 +1,31 @@
+# Post-dose stabilization — rate settles after taking nadolol
+name:        "Healthy – Post-Dose Settling"
+description: "HR gradually decreases after taking nadolol. Clean sinus rhythm."
+speed:    300
+duration: "10m"
+
+drugs:
+  - name: nadolol
+    doses:
+      - amount_mg: 40
+        taken_at: "-15m"
+
+heart:
+  baseline_bpm: 72
+  noise_std:    2.0
+  segments:
+    - start: "0m"
+      end:   "3m"
+      pattern: normal
+      bpm: 72
+
+    - start: "3m"
+      end:   "7m"
+      pattern: normal
+      bpm: 66
+      bpm_std: 2.0
+
+    - start: "7m"
+      end:   "10m"
+      pattern: normal
+      bpm: 62

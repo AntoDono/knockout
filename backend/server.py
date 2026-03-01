@@ -33,6 +33,7 @@ from database import init_db
 from routes import (
     sensor_router, drugs_router, patient_router, report_router,
     baselines_router, episodes_router, synthetic_router,
+    afib_feedback_router,
 )
 
 # Set by __main__ before uvicorn starts; lifespan reads it.
@@ -81,6 +82,7 @@ app.include_router(report_router)
 app.include_router(baselines_router)
 app.include_router(episodes_router)
 app.include_router(synthetic_router)
+app.include_router(afib_feedback_router)
 
 
 if __name__ == "__main__":

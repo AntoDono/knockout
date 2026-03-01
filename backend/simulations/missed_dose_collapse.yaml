@@ -16,7 +16,7 @@ description: >
   Patient misses both morning and evening nadolol.  Plasma levels fall to near
   zero, HR escalates, and a brief SVT episode emerges in the ICD gap before
   self-terminating.
-speed:    300
+speed:    600
 duration: "3h"
 
 drugs:

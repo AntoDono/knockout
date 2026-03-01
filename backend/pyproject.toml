@@ -17,6 +17,9 @@ dependencies = [
     "uvicorn[standard]>=0.34.0",
     "xai-sdk>=1.7.0",
     "twilio>=9.10.2",
+    "geocoder>=1.38.1",
+    "torch>=2.10.0",
+    "tqdm>=4.67.3",
 ]
 
 [dependency-groups]
