@@ -194,6 +194,20 @@ Guardrail doesn't compete with the implanted device. It captures what the ICD de
 
 ---
 
+## Tech Stack (Possibilities / Ideas)
+
+| Component | Options | Notes |
+|---|---|---|
+| **Mobile app** | Swift + HealthKit | iOS-first. HealthKit background delivery for passive data streams. Swift is required for native Apple Watch and HealthKit integration. |
+| **Local database** | SQLite or InfluxDB | SQLite for simplicity and hackathon speed. InfluxDB if we need time-series query performance for overlaying streams on a timeline. |
+| **PK modeling** | Python + PKPy | Open-source pharmacokinetic library. Models nadolol and flecainide blood-level curves from logged dose times and known half-lives. |
+| **NLP for EHR parsing** | Claude API | Extracts triggers, prodromal descriptions, and treatment patterns from unstructured clinical notes. Demo scope — run on sample notes. |
+| **Bayesian model** | PyMC or similar | Future vision layer. Would use PyMC for probabilistic modeling with TKOS registry priors. Not built for hackathon. |
+| **PDF generation** | Standard report templating | Generates the physician report. Any PDF library works — the clinical content structure matters more than the rendering tool. |
+| **Weather** | OpenWeatherMap API | Free tier. Polled every 30 minutes via GPS location. Temperature and humidity as environmental context. |
+
+---
+
 ## The Hackathon Track Alignment
 
 This project addresses Track 3: Symptom Management.
@@ -211,3 +225,10 @@ A child with TKOS today lives under blanket restriction. Don't run. Don't swim. 
 Guardrail shifts the frame. It watches passively, learns personally, and over time builds a picture of this specific patient's risk landscape that no 15-minute visit could ever produce. It gives the doctor data they've never had. And it fills the gap between what her ICD catches and what actually happens in her body every day.
 
 The technology isn't the point. The point is a child who gets told "today is a good day" — and a parent who can believe it.
+
+---
+
+## Notes
+
+- Wrist temperature has uses beyond fever detection — could feed into fatigue tracking, exercise recovery, and other physiological state signals worth exploring.
+- Medication logging needs to account for multiple drugs. A single tap works for one daily dose, but TKOS patients often take both nadolol and flecainide (and potentially others). The tap flow needs to handle selecting which drug was taken, or logging multiple doses at different times of day.
