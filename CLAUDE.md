@@ -66,6 +66,14 @@ cd backend && rm -f knockout.db && uv run python -c "from database import init_d
 /patient/triggers  GET    routes/patient.py   – known triggers with source/confidence
 
 /report            GET    routes/reports.py   – generate cardiology PDF report
+
+/baselines         GET    routes/baselines.py – rolling 7-day personal baselines
+
+/episodes          POST   routes/episodes.py  – create episode (one-tap)
+/episodes          GET    routes/episodes.py  – list episodes (?start= &end= filter)
+/episodes/{id}/context GET routes/episodes.py – 24-hour context for episode
+
+/synthetic/generate POST  routes/synthetic.py – generate 7 days of demo data
 ```
 
 ### Services (`services/`)
@@ -73,6 +81,8 @@ cd backend && rm -f knockout.db && uv run python -c "from database import init_d
 Business logic utilities used by routes:
 - `heart_analyze.py` — AFib detection from BPM readings
 - `llm_tools.py` — Drug half-life lookup via Grok
+- `baselines.py` — 7-day rolling baseline computation for all streams
+- `synthetic.py` — 7-day synthetic data generator for hackathon demo
 
 ### Database layer (`database.py`)
 
@@ -83,6 +93,8 @@ Two tiers of Peewee models:
 **Layer 1 (clinical foundation):** 13 models seeded from `seed/clinical.json` on first startup — `Patient`, `PatientDiagnosis`, `PatientAllergy`, `KnownTrigger`, `Medication`, `ICDDevice`, `ICDZone`, `ICDEpisode`, `ICDShockHistory`, `ECGReading`, `StaticThreshold`, `ClinicalNote`, `SurgicalHistory`.
 
 Seeding is idempotent — `_seed_clinical()` skips if any Patient row exists.
+
+**Layer 2 (passive streams):** 6 models — `HeartRateReading`, `HRVReading`, `SleepRecord`, `TemperatureReading`, `WeatherReading`, `Episode`. All indexed on `(patient_id, recorded_at)`. The `/push` endpoint persists incoming sensor data to the appropriate table via name-based routing.
 
 ### Report module (`report/`)
 
@@ -103,7 +115,9 @@ Frontend currently simulates vitals; not yet wired to backend API.
 
 **PK decay model:** `remaining = amount_mg * 0.5^(elapsed_s / half_life_s)`. Implemented in both `database.py` (backend) and `lib/simulate.ts` (frontend). Nadolol half-life = 22h; symptoms cluster during trough windows.
 
-**Static thresholds:** Patient-specific baselines from clinical records (resting HR 70 bpm is pacemaker-set, not intrinsic). Stored in `static_thresholds` table. Dynamic baselines (rolling averages from watch data) are a future Layer 2 concern.
+**Static thresholds:** Patient-specific baselines from clinical records (resting HR 70 bpm is pacemaker-set, not intrinsic). Stored in `static_thresholds` table.
+
+**Rolling baselines** (`services/baselines.py`): Dynamic 7-day rolling averages computed on-the-fly for HR, HRV, sleep, temperature, and weather. Available via `GET /baselines`. Complements static thresholds with personal trend data from Layer 2 streams.
 
 **AFib detection** (`services/heart_analyze.py`): Weighted voting across 6 HRV metrics (CV, RMSSD, pNN20, SD1/SD2, sample entropy, LF/HF). Needs >= 10 BPM samples. Broadcasts via WebSocket.
 
