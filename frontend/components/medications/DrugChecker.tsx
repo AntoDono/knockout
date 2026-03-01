@@ -22,13 +22,14 @@ export function DrugChecker() {
       {results.length > 0 && (
         <div className="mt-3 space-y-2">
           {results.map((drug) => (
-            <div key={drug.name} className={cn("flex items-center justify-between p-3 rounded-xl border",
+            <div key={drug.name} className={cn("flex items-start justify-between p-3 rounded-xl border",
               drug.qtRisk === "high" ? "border-red-200 bg-red-50/50" :
               drug.qtRisk === "moderate" ? "border-amber-200 bg-amber-50/50" : "border-border"
             )}>
-              <div>
+              <div className="flex-1 mr-3">
                 <p className="text-sm font-medium">{drug.name}</p>
-                <p className="text-xs text-muted-foreground">t½ {drug.tHalfHours}h</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{drug.description}</p>
+                <p className="text-[10px] text-muted-foreground mt-1">t½ {drug.tHalfHours}h</p>
               </div>
               <Badge variant={drug.qtRisk === "high" ? "destructive" : drug.qtRisk === "moderate" ? "outline" : "secondary"}>
                 {drug.qtRisk === "high" && <AlertTriangle className="h-3 w-3 mr-1" />}QT: {drug.qtRisk}

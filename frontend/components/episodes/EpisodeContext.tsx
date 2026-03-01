@@ -1,18 +1,21 @@
 "use client";
 import { Heart, Activity, Thermometer, Moon, CloudSun } from "lucide-react";
 import { useFetch } from "@/lib/api";
-import type { EpisodeContextData } from "@/lib/types";
+import type { EpisodeContextData, EpisodeInsight } from "@/lib/types";
+import { EpisodeTimeline } from "./EpisodeTimeline";
 
 interface EpisodeContextProps {
   episodeId: number;
+  insight?: EpisodeInsight;
 }
 
-function MiniStat({ icon: Icon, label, value, unit, color }: {
+function MiniStat({ icon: Icon, label, value, unit, color, comparison }: {
   icon: React.ElementType;
   label: string;
   value: string;
   unit: string;
   color: string;
+  comparison?: string;
 }) {
   return (
     <div className="flex items-center gap-2.5 p-3 rounded-xl bg-muted/40">
@@ -20,12 +23,13 @@ function MiniStat({ icon: Icon, label, value, unit, color }: {
       <div>
         <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</p>
         <p className="text-sm font-semibold">{value} <span className="text-xs font-normal text-muted-foreground">{unit}</span></p>
+        {comparison && <p className="text-[10px] text-muted-foreground">{comparison}</p>}
       </div>
     </div>
   );
 }
 
-export function EpisodeContext({ episodeId }: EpisodeContextProps) {
+export function EpisodeContext({ episodeId, insight }: EpisodeContextProps) {
   const { data: ctx, loading } = useFetch<EpisodeContextData>(`/episodes/${episodeId}/context`);
 
   if (loading || !ctx) {
@@ -69,24 +73,71 @@ export function EpisodeContext({ episodeId }: EpisodeContextProps) {
 
   const nearestSleep = sleepWindow[0] ?? null;
 
+  // Baseline comparisons from API
+  const baselines = ctx.baselines;
+  const hrDeviation = avgHr !== null && baselines?.hr?.mean
+    ? Math.round(((avgHr - baselines.hr.mean) / baselines.hr.mean) * 100)
+    : null;
+  const hrvDeviation = avgHrv !== null && baselines?.hrv?.mean
+    ? Math.round(((avgHrv - baselines.hrv.mean) / baselines.hrv.mean) * 100)
+    : null;
+  const tempNum = avgTemp !== null ? parseFloat(avgTemp) : null;
+  const tempDeviationC = tempNum !== null && baselines?.temperature?.mean
+    ? +(tempNum - baselines.temperature.mean).toFixed(2)
+    : null;
+  const weatherDeviation = avgWeatherTemp !== null && baselines?.weather?.meanTempC
+    ? Math.round(avgWeatherTemp - baselines.weather.meanTempC)
+    : null;
+
   return (
     <div className="mt-4 pt-4 border-t border-border/50 space-y-3 animate-fade-in">
       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
         24-Hour Context Window
       </p>
 
+      {/* Layer 1: Timeline chart */}
+      {hrWindow.length > 0 && (
+        <EpisodeTimeline
+          recordedAt={ctx.episode.recordedAt}
+          hrData={hrWindow}
+          hrvData={hrvWindow}
+        />
+      )}
+
+      {/* Layer 2: Enhanced stats with baseline comparison */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
         {avgHr !== null && (
-          <MiniStat icon={Heart} label="Avg HR" value={`${avgHr}`} unit="bpm" color="text-red-500" />
+          <MiniStat
+            icon={Heart}
+            label="Avg HR"
+            value={`${avgHr}`}
+            unit="bpm"
+            color="text-red-500"
+            comparison={hrDeviation !== null ? `${hrDeviation > 0 ? "+" : ""}${hrDeviation}% vs baseline` : undefined}
+          />
         )}
         {minHr !== null && maxHr !== null && (
           <MiniStat icon={Heart} label="HR Range" value={`${minHr}–${maxHr}`} unit="bpm" color="text-red-400" />
         )}
         {avgHrv !== null && (
-          <MiniStat icon={Activity} label="Avg HRV" value={`${avgHrv}`} unit="ms" color="text-primary" />
+          <MiniStat
+            icon={Activity}
+            label="Avg HRV"
+            value={`${avgHrv}`}
+            unit="ms"
+            color="text-primary"
+            comparison={hrvDeviation !== null ? `${hrvDeviation > 0 ? "+" : ""}${hrvDeviation}% vs baseline` : undefined}
+          />
         )}
         {avgTemp !== null && (
-          <MiniStat icon={Thermometer} label="Body Temp" value={avgTemp} unit="°C" color="text-amber-500" />
+          <MiniStat
+            icon={Thermometer}
+            label="Body Temp"
+            value={avgTemp}
+            unit="°C"
+            color="text-amber-500"
+            comparison={tempDeviationC !== null ? `${tempDeviationC >= 0 ? "+" : ""}${tempDeviationC}° vs avg` : undefined}
+          />
         )}
         {nearestSleep && (
           <MiniStat
@@ -104,6 +155,7 @@ export function EpisodeContext({ episodeId }: EpisodeContextProps) {
             value={`${avgWeatherTemp}°C`}
             unit={`${avgHumidity}% humid`}
             color="text-sky-500"
+            comparison={weatherDeviation !== null ? `${weatherDeviation >= 0 ? "+" : ""}${weatherDeviation}° vs weekly avg` : undefined}
           />
         )}
       </div>
@@ -115,6 +167,14 @@ export function EpisodeContext({ episodeId }: EpisodeContextProps) {
         <span>·</span>
         <span>{tempWindow.length} temp readings</span>
       </div>
+
+      {/* Layer 3: Context narrative */}
+      {insight?.contextNarrative && (
+        <div className="rounded-xl bg-muted/30 p-3 border border-border/50 mt-3">
+          <p className="text-xs font-medium text-muted-foreground mb-1">Context Analysis</p>
+          <p className="text-xs text-foreground leading-relaxed">{insight.contextNarrative}</p>
+        </div>
+      )}
     </div>
   );
 }

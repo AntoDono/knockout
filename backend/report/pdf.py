@@ -1,5 +1,5 @@
 """
-PDF renderer for Guardrail cardiology reports.
+PDF renderer for Knockout cardiology reports.
 
 Takes the assembled report dict from builder.py and renders a formatted PDF
 using reportlab.
@@ -161,7 +161,7 @@ def build_pdf_elements(report: dict, patient: dict | None = None) -> list:
 
     generated = meta["generated_at"][:19].replace("T", " ")
     elements.append(Paragraph(
-        f"Generated: {generated} UTC  &nbsp;|&nbsp;  Guardrail v{meta['guardrail_version']}",
+        f"Generated: {generated} UTC  &nbsp;|&nbsp;  Knockout v{meta['knockout_version']}",
         styles["meta"],
     ))
     elements.append(HRFlowable(width="100%", thickness=1, color=SKY, spaceAfter=8))
@@ -391,7 +391,7 @@ def build_pdf_elements(report: dict, patient: dict | None = None) -> list:
     elements.append(Spacer(1, 16))
     elements.append(HRFlowable(width="100%", thickness=0.5, color=ZINC_400, spaceAfter=6))
     elements.append(Paragraph(
-        "GUARDRAIL CLINICAL DECISION SUPPORT | This report is generated from patient-reported "
+        "KNOCKOUT CLINICAL DECISION SUPPORT | This report is generated from patient-reported "
         "symptom captures and passive biometric data. It is intended to support — not replace — "
         "clinical judgment. All thresholds are calibrated to this patient's personal baselines. "
         "Pharmacokinetic estimates are based on population half-life values and may not reflect "
@@ -422,8 +422,8 @@ def generate_pdf(report: dict, output_path: str | Path, patient_data: dict | Non
         rightMargin=0.75 * inch,
         topMargin=0.6 * inch,
         bottomMargin=0.6 * inch,
-        title=f"Guardrail Cardiology Report — {report['metadata']['patient_name']}",
-        author="Guardrail TKOS Platform",
+        title=f"Knockout Cardiology Report — {report['metadata']['patient_name']}",
+        author="Knockout TKOS Platform",
     )
 
     elements = build_pdf_elements(report, patient_data)
@@ -443,8 +443,8 @@ def generate_pdf_bytes(report: dict, patient_data: dict | None = None) -> bytes:
         rightMargin=0.75 * inch,
         topMargin=0.6 * inch,
         bottomMargin=0.6 * inch,
-        title=f"Guardrail Cardiology Report — {report['metadata']['patient_name']}",
-        author="Guardrail TKOS Platform",
+        title=f"Knockout Cardiology Report — {report['metadata']['patient_name']}",
+        author="Knockout TKOS Platform",
     )
 
     elements = build_pdf_elements(report, patient_data)
