@@ -1,11 +1,18 @@
 """
 Clinical foundation API endpoints (Layer 1).
 
-All handlers accept a SensorHandler instance and use its _json() / _send_error()
-helpers to write the HTTP response.
+  GET /patient              – full patient profile
+  GET /patient/icd          – ICD device, zones, episodes, shock history
+  GET /patient/icd/gap      – computed ICD gap boundaries
+  GET /patient/ecg          – all ECG readings
+  GET /patient/thresholds   – current static thresholds
+  GET /patient/medications  – active medications
+  GET /patient/triggers     – known triggers
 """
 
 import json
+
+from fastapi import APIRouter, HTTPException
 
 from database import (
     Patient, PatientDiagnosis, PatientAllergy, KnownTrigger,
@@ -13,36 +20,20 @@ from database import (
     ECGReading, StaticThreshold, ClinicalNote, SurgicalHistory,
 )
 
-
-def route_patient(handler, path: str) -> None:
-    """Dispatch /patient* paths to the appropriate handler."""
-    if path == "/patient":
-        _handle_get_patient(handler)
-    elif path == "/patient/icd/gap":
-        _handle_get_icd_gap(handler)
-    elif path == "/patient/icd":
-        _handle_get_icd(handler)
-    elif path == "/patient/ecg":
-        _handle_get_ecg(handler)
-    elif path == "/patient/thresholds":
-        _handle_get_thresholds(handler)
-    elif path == "/patient/medications":
-        _handle_get_medications(handler)
-    elif path == "/patient/triggers":
-        _handle_get_triggers(handler)
-    else:
-        handler._send(404)
+router = APIRouter(prefix="/patient", tags=["patient"])
 
 
-def _handle_get_patient(handler):
-    """GET /patient -- full patient profile with diagnoses, allergies, triggers."""
+def _get_patient() -> Patient:
     try:
-        p = Patient.get()
+        return Patient.get()
     except Patient.DoesNotExist:
-        handler._send_error(404, "no patient found")
-        return
+        raise HTTPException(status_code=404, detail="no patient found")
 
-    handler._json({
+
+@router.get("")
+def get_patient():
+    p = _get_patient()
+    return {
         "id": p.id,
         "first_name": p.first_name,
         "last_name": p.last_name,
@@ -66,19 +57,18 @@ def _handle_get_patient(handler):
             {"allergen": a.allergen, "reaction": a.reaction}
             for a in p.allergies
         ],
-    })
+    }
 
 
-def _handle_get_icd(handler):
-    """GET /patient/icd -- ICD device, zones, episodes, shock history."""
+@router.get("/icd")
+def get_icd():
+    p = _get_patient()
     try:
-        p = Patient.get()
         device = ICDDevice.get(ICDDevice.patient == p)
-    except (Patient.DoesNotExist, ICDDevice.DoesNotExist):
-        handler._send_error(404, "no ICD data found")
-        return
+    except ICDDevice.DoesNotExist:
+        raise HTTPException(status_code=404, detail="no ICD data found")
 
-    handler._json({
+    return {
         "device": {
             "manufacturer": device.manufacturer,
             "model": device.model,
@@ -123,37 +113,31 @@ def _handle_get_icd(handler):
             }
             for s in p.shock_history.order_by(ICDShockHistory.event_date)
         ],
-    })
+    }
 
 
-def _handle_get_icd_gap(handler):
-    """GET /patient/icd/gap -- computed ICD gap boundaries."""
+@router.get("/icd/gap")
+def get_icd_gap():
+    p = _get_patient()
     try:
-        p = Patient.get()
         t = StaticThreshold.get(
             StaticThreshold.patient == p, StaticThreshold.is_current == True
         )
-    except (Patient.DoesNotExist, StaticThreshold.DoesNotExist):
-        handler._send_error(404, "no threshold data found")
-        return
+    except StaticThreshold.DoesNotExist:
+        raise HTTPException(status_code=404, detail="no threshold data found")
 
-    handler._json({
+    return {
         "gap_lower_bpm": t.icd_gap_lower_bpm,
         "gap_upper_bpm": t.icd_gap_upper_bpm,
         "resting_hr_bpm": t.resting_hr_bpm,
         "note": f"Events between {t.icd_gap_lower_bpm} and {t.icd_gap_upper_bpm} bpm are invisible to the ICD",
-    })
+    }
 
 
-def _handle_get_ecg(handler):
-    """GET /patient/ecg -- all ECG readings, chronological."""
-    try:
-        p = Patient.get()
-    except Patient.DoesNotExist:
-        handler._send_error(404, "no patient found")
-        return
-
-    handler._json([
+@router.get("/ecg")
+def get_ecg():
+    p = _get_patient()
+    return [
         {
             "reading_date": e.reading_date,
             "hr_bpm": e.hr_bpm,
@@ -166,21 +150,20 @@ def _handle_get_ecg(handler):
             "notes": e.notes,
         }
         for e in p.ecg_readings.order_by(ECGReading.reading_date)
-    ])
+    ]
 
 
-def _handle_get_thresholds(handler):
-    """GET /patient/thresholds -- current static thresholds."""
+@router.get("/thresholds")
+def get_thresholds():
+    p = _get_patient()
     try:
-        p = Patient.get()
         t = StaticThreshold.get(
             StaticThreshold.patient == p, StaticThreshold.is_current == True
         )
-    except (Patient.DoesNotExist, StaticThreshold.DoesNotExist):
-        handler._send_error(404, "no threshold data found")
-        return
+    except StaticThreshold.DoesNotExist:
+        raise HTTPException(status_code=404, detail="no threshold data found")
 
-    handler._json({
+    return {
         "effective_date": t.effective_date,
         "clinician": t.clinician,
         "resting_hr_bpm": t.resting_hr_bpm,
@@ -193,18 +176,13 @@ def _handle_get_thresholds(handler):
         "qtc_upper_limit_ms": t.qtc_upper_limit_ms,
         "icd_gap_lower_bpm": t.icd_gap_lower_bpm,
         "icd_gap_upper_bpm": t.icd_gap_upper_bpm,
-    })
+    }
 
 
-def _handle_get_medications(handler):
-    """GET /patient/medications -- all active medications."""
-    try:
-        p = Patient.get()
-    except Patient.DoesNotExist:
-        handler._send_error(404, "no patient found")
-        return
-
-    handler._json([
+@router.get("/medications")
+def get_medications():
+    p = _get_patient()
+    return [
         {
             "id": m.id,
             "drug_name": m.drug_name,
@@ -220,18 +198,13 @@ def _handle_get_medications(handler):
             "notes": m.notes,
         }
         for m in p.medications.where(Medication.is_active == True)
-    ])
+    ]
 
 
-def _handle_get_triggers(handler):
-    """GET /patient/triggers -- known triggers with source and confidence."""
-    try:
-        p = Patient.get()
-    except Patient.DoesNotExist:
-        handler._send_error(404, "no patient found")
-        return
-
-    handler._json([
+@router.get("/triggers")
+def get_triggers():
+    p = _get_patient()
+    return [
         {
             "trigger_type": t.trigger_type,
             "source": t.source,
@@ -239,4 +212,4 @@ def _handle_get_triggers(handler):
             "notes": t.notes,
         }
         for t in p.triggers
-    ])
+    ]
