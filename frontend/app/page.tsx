@@ -2,6 +2,8 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { ChartLine } from "@phosphor-icons/react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Header } from "@/components/Header";
 import { BottomNav } from "@/components/BottomNav";
 import { PatientCard } from "@/components/PatientCard";
@@ -13,7 +15,7 @@ import { MedicationRow } from "@/components/MedicationRow";
 import { AddMedicationModal } from "@/components/AddMedicationModal";
 import { DrugCheckerTab } from "@/components/DrugCheckerTab";
 import { ExportTab } from "@/components/ExportTab";
-import { Toast } from "@/components/Toast";
+import { toast } from "sonner";
 import { useEpisodes } from "@/hooks/useEpisodes";
 import { useVitals } from "@/hooks/useVitals";
 import { usePKData } from "@/hooks/usePKData";
@@ -22,15 +24,11 @@ import { INITIAL_MEDICATIONS } from "@/lib/drugs";
 import type { Medication } from "@/lib/types";
 import type { DrugOption } from "@/lib/types";
 
-function formatToastTime(ts: number): string {
-  return new Date(ts).toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
-}
-
 export default function Home() {
   const [medications, setMedications] = useState<Medication[]>(INITIAL_MEDICATIONS);
   const [desktopTab, setDesktopTab] = useState("overview");
   const [mobileTab, setMobileTab] = useState("overview");
-  const [toast, setToast] = useState<string | null>(null);
+  // Toast handled by Sonner (via layout.tsx Toaster)
   const [modalOpen, setModalOpen] = useState(false);
   const [mobileDrugChecker, setMobileDrugChecker] = useState(false);
 
@@ -50,18 +48,20 @@ export default function Home() {
 
   const handleFeelSomething = useCallback(() => {
     addEpisode(vitals.heartRate, vitals.hrv, Math.round(primaryConcentration));
-    setToast(`Captured · ${formatToastTime(Date.now())} · HR ${vitals.heartRate} · Drug ${Math.round(primaryConcentration)}% · HRV ${vitals.hrv}ms`);
+    toast("Episode captured", {
+      description: `HR ${vitals.heartRate} · Drug ${Math.round(primaryConcentration)}% · HRV ${vitals.hrv}ms`,
+    });
   }, [addEpisode, vitals, primaryConcentration]);
 
   const handleTookDose = useCallback((id: string) => {
     setMedications((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, lastDoseAt: Date.now() } : m))
+      prev.map((m) => (m.id === id ? { ...m, lastDoseAt: Date.now() } : m)),
     );
   }, []);
 
   const handleToggleChart = useCallback((id: string) => {
     setMedications((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, visibleOnChart: !m.visibleOnChart } : m))
+      prev.map((m) => (m.id === id ? { ...m, visibleOnChart: !m.visibleOnChart } : m)),
     );
   }, []);
 
@@ -90,7 +90,7 @@ export default function Home() {
   const showExport = desktopTab === "export" || mobileTab === "export";
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-sky-50/50">
+    <div className="flex h-screen flex-col overflow-hidden bg-slate-50">
       <Header
         activeTab={desktopTab}
         onTab={setDesktopTab}
@@ -98,51 +98,47 @@ export default function Home() {
         onDrugCheckerClick={isMobile ? () => setMobileDrugChecker(true) : undefined}
       />
 
-      {/* Drug Checker: desktop tab or mobile full screen */}
+      {/* Drug Checker */}
       {showDrugChecker && (
         <div className={`flex min-h-0 flex-1 flex-col overflow-auto ${isMobile ? "px-3" : "hidden sm:block"}`}>
           {isMobile && (
-            <button
-              type="button"
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setMobileDrugChecker(false)}
-              className="shrink-0 py-2 text-sm font-medium text-sky-600"
+              className="shrink-0 self-start"
             >
               ← Back
-            </button>
+            </Button>
           )}
           <DrugCheckerTab />
         </div>
       )}
+
+      {/* Export */}
       {showExport && !showDrugChecker && (
         <div className={`flex min-h-0 flex-1 flex-col overflow-auto ${isMobile ? "" : "hidden sm:block"}`}>
           <ExportTab />
         </div>
       )}
 
-      {/* Overview / Episodes / Drugs (main dashboard or mobile sections) */}
+      {/* Main dashboard */}
       {showOverviewContent && (
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 sm:px-6">
-          {/* Mobile: Episodes tab = episode log first */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden px-3 sm:px-5">
+          {/* Mobile: Episodes tab */}
           {isMobile && mobileTab === "episodes" && (
-            <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden py-2">
-              <div className="shrink-0">
-                <PatientCard />
-              </div>
+            <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-hidden py-2">
+              <div className="shrink-0"><PatientCard /></div>
               <div className="min-h-0 flex-1 overflow-auto">
-                <EpisodeLog
-                  episodes={episodes}
-                  highlightId={highlightId}
-                  onSelect={setHighlightId}
-                />
+                <EpisodeLog episodes={episodes} highlightId={highlightId} onSelect={setHighlightId} />
               </div>
             </div>
           )}
 
+          {/* Mobile: Drugs tab */}
           {isMobile && mobileTab === "drugs" && (
-            <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-hidden py-2">
-              <div className="shrink-0">
-                <PatientCard />
-              </div>
+            <div className="flex min-h-0 flex-1 flex-col gap-2.5 overflow-hidden py-2">
+              <div className="shrink-0"><PatientCard /></div>
               <div className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden">
                 <MedicationRow
                   medications={medications}
@@ -155,53 +151,57 @@ export default function Home() {
             </div>
           )}
 
+          {/* Overview */}
           {(desktopTab === "overview" || (isMobile && mobileTab === "overview")) && (
             <>
-              <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 py-2 lg:grid-cols-12">
-                <aside className="flex min-h-0 flex-col gap-3 lg:col-span-3">
-                  <div className="shrink-0">
-                    <PatientCard />
-                  </div>
+              <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 py-2.5 lg:grid-cols-12">
+                {/* Left sidebar */}
+                <aside className="flex min-h-0 flex-col gap-2.5 lg:col-span-3">
+                  <div className="shrink-0"><PatientCard /></div>
                   <div className="hidden shrink-0 lg:block">
                     <FeelSomethingButton onClick={handleFeelSomething} mobile={false} />
                   </div>
                   <div className="min-h-0 flex-1 overflow-hidden">
-                    <EpisodeLog
-                      episodes={episodes}
-                      highlightId={highlightId}
-                      onSelect={setHighlightId}
-                    />
+                    <EpisodeLog episodes={episodes} highlightId={highlightId} onSelect={setHighlightId} />
                   </div>
                 </aside>
 
+                {/* Center: PK chart */}
                 <main className="flex min-h-0 flex-col lg:col-span-6">
-                  <div className="flex min-h-0 flex-1 flex-col rounded-[22px] bg-white p-3 shadow-[0_4px_20px_rgba(56,189,248,0.08)]">
-                    <p className="mb-1 flex items-center gap-1.5 shrink-0 text-sm font-medium text-zinc-500">
-                      <ChartLine size={18} weight="duotone" className="text-sky-500" />
-                      PK & HRV · 48h
-                    </p>
-                    <div className="min-h-0 flex-1">
-                      <PKHRVChart
-                        pkPoints={pkData.pkPoints}
-                        hrvPoints={pkData.hrvPoints}
-                        troughZones={pkData.troughZones}
-                        doseTimes={pkData.doseTimes}
-                        episodeTimes={pkData.episodeTimes}
-                        now={pkData.now}
-                        windowStart={pkData.windowStart}
-                        windowEnd={pkData.windowEnd}
-                        highlightTime={highlightTime}
-                        mobile={isMobile}
-                      />
-                    </div>
-                  </div>
+                  <Card className="flex min-h-0 flex-1 flex-col">
+                    <CardContent className="flex min-h-0 flex-1 flex-col p-4">
+                      <div className="mb-2 flex shrink-0 items-center gap-2">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-sky-50">
+                          <ChartLine size={15} weight="bold" className="text-sky-600" />
+                        </div>
+                        <span className="text-xs font-semibold tracking-wide text-slate-400 uppercase">
+                          Drug Level & HRV · 48h
+                        </span>
+                      </div>
+                      <div className="min-h-0 flex-1">
+                        <PKHRVChart
+                          chartData={pkData.chartData}
+                          troughZones={pkData.troughZones}
+                          doseTimes={pkData.doseTimes}
+                          episodeTimes={pkData.episodeTimes}
+                          now={pkData.now}
+                          windowStart={pkData.windowStart}
+                          windowEnd={pkData.windowEnd}
+                          highlightTime={highlightTime}
+                          mobile={isMobile}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
                 </main>
 
+                {/* Right sidebar: Vitals */}
                 <aside className="min-h-0 lg:col-span-3">
                   <VitalsCard vitals={vitals} history={history} />
                 </aside>
               </div>
 
+              {/* Medication row */}
               <div className="shrink-0 py-1">
                 <MedicationRow
                   medications={medications}
@@ -221,15 +221,7 @@ export default function Home() {
         <FeelSomethingButton onClick={handleFeelSomething} mobile />
       )}
 
-      <AddMedicationModal
-        isOpen={modalOpen}
-        onClose={() => setModalOpen(false)}
-        onAdd={handleAddMedication}
-      />
-
-      {toast && (
-        <Toast message={toast} onClose={() => setToast(null)} />
-      )}
+      <AddMedicationModal isOpen={modalOpen} onClose={() => setModalOpen(false)} onAdd={handleAddMedication} />
 
       {isMobile && (
         <BottomNav

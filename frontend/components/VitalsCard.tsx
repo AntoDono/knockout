@@ -1,105 +1,177 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import * as d3 from "d3";
-import { Heart, ChartLine, ActivityIcon, Gauge } from "@phosphor-icons/react";
+import { Heart, Waveform, PersonSimpleWalk, Gauge } from "@phosphor-icons/react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { ChartContainer, type ChartConfig } from "@/components/ui/chart";
+import { AreaChart, Area, ReferenceLine } from "recharts";
 import type { Vitals, ActivityState } from "@/lib/types";
 
 const HR_BASELINE = 78;
 const HRV_BASELINE = 44;
 
+/* ── Sparkline with Recharts ─────────────────────────── */
+
+const hrChartConfig = {
+  hr: { label: "Heart Rate", color: "var(--chart-3)" },
+} satisfies ChartConfig;
+
+const hrvChartConfig = {
+  hrv: { label: "HRV", color: "var(--chart-2)" },
+} satisfies ChartConfig;
+
 interface SparklineProps {
   data: number[];
+  dataKey: string;
+  config: ChartConfig;
   color: string;
+  gradientId: string;
   baseline?: number;
-  width: number;
-  height: number;
+  height?: number;
 }
 
-function Sparkline({ data, color, baseline, width, height }: SparklineProps) {
-  const ref = useRef<SVGSVGElement>(null);
-  useEffect(() => {
-    if (!ref.current || data.length < 2) return;
-    const x = d3.scaleLinear().domain([0, data.length - 1]).range([0, width]);
-    const min = Math.min(...data);
-    const max = Math.max(...data);
-    const pad = (max - min) * 0.1 || 1;
-    const y = d3
-      .scaleLinear()
-      .domain([min - pad, max + pad])
-      .range([height, 0]);
-    const line = d3
-      .line<number>()
-      .x((_, i) => x(i))
-      .y((d) => y(d))
-      .curve(d3.curveMonotoneX);
-    d3.select(ref.current).selectAll("*").remove();
-    const svg = d3.select(ref.current).attr("width", width).attr("height", height);
-    svg.append("path").datum(data).attr("fill", "none").attr("stroke", color).attr("stroke-width", 1.5).attr("d", line as unknown as () => string);
-    if (baseline != null) {
-      const by = y(baseline);
-      if (by >= 0 && by <= height) {
-        svg.append("line").attr("x1", 0).attr("x2", width).attr("y1", by).attr("y2", by).attr("stroke", color).attr("stroke-opacity", 0.4).attr("stroke-dasharray", "2 2");
-      }
-    }
-  }, [data, color, baseline, width, height]);
-  return <svg ref={ref} className="block" />;
+function VitalSparkline({ data, dataKey, config, color, gradientId, baseline, height = 52 }: SparklineProps) {
+  const chartData = data.map((v, i) => ({ i, [dataKey]: v }));
+
+  return (
+    <ChartContainer config={config} className="w-full" style={{ height }}>
+      <AreaChart data={chartData} margin={{ top: 4, right: 0, bottom: 0, left: 0 }}>
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity={0.25} />
+            <stop offset="100%" stopColor={color} stopOpacity={0.02} />
+          </linearGradient>
+        </defs>
+        {baseline != null && (
+          <ReferenceLine y={baseline} stroke={color} strokeOpacity={0.2} strokeDasharray="3 3" />
+        )}
+        <Area
+          dataKey={dataKey}
+          type="monotone"
+          stroke={color}
+          strokeWidth={1.5}
+          fill={`url(#${gradientId})`}
+          dot={false}
+          isAnimationActive={false}
+        />
+      </AreaChart>
+    </ChartContainer>
+  );
 }
+
+/* ── Activity badge ───────────────────────────────────── */
+
+function activityStyle(state: ActivityState) {
+  switch (state) {
+    case "Active":   return "bg-amber-50 text-amber-700 border-amber-200";
+    case "Walking":  return "bg-sky-50 text-sky-700 border-sky-200";
+    default:         return "bg-emerald-50 text-emerald-700 border-emerald-200";
+  }
+}
+
+/* ── Main component ───────────────────────────────────── */
 
 interface VitalsCardProps {
   vitals: Vitals;
   history: { hr: number[]; hrv: number[] };
 }
 
-function ActivityLabel({ state }: { state: ActivityState }) {
-  return <span className="text-lg font-semibold text-zinc-800">{state}</span>;
-}
-
 export function VitalsCard({ vitals, history }: VitalsCardProps) {
-  const w = 100;
-  const h = 24;
-
   const hrDev = vitals.heartRate - HR_BASELINE;
-  const hrvPct = HRV_BASELINE ? Math.round(((vitals.hrv - HRV_BASELINE) / HRV_BASELINE) * 100) : 0;
+  const hrvDev = vitals.hrv - HRV_BASELINE;
 
-  const cardClass = "rounded-[20px] bg-white p-3 shadow-[0_4px_20px_rgba(56,189,248,0.08)]";
   return (
-    <div className="grid grid-cols-2 gap-2 lg:grid-cols-1">
-      <div className={cardClass}>
-        <p className="flex items-center gap-1.5 text-xs font-medium text-zinc-500">
-          <Heart size={14} weight="duotone" className="text-red-400" />
-          Heart Rate
-        </p>
-        <p className="text-xl font-semibold text-zinc-800">{vitals.heartRate} <span className="text-xs font-normal text-zinc-500">BPM</span></p>
-        <p className={`text-xs ${hrDev >= 0 ? "text-red-500" : "text-sky-500"}`}>{hrDev >= 0 ? "+" : ""}{hrDev}</p>
-        <Sparkline data={history.hr.length ? history.hr : [vitals.heartRate]} color="#ef4444" baseline={HR_BASELINE} width={w} height={h} />
-      </div>
+    <div className="flex h-full flex-col gap-2.5">
+      {/* Heart Rate */}
+      <Card className="flex-1">
+        <CardContent className="p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-red-50">
+                <Heart size={15} weight="fill" className="text-red-500 animate-pulse-live" />
+              </div>
+              <span className="text-xs font-semibold tracking-wide text-slate-400 uppercase">Heart Rate</span>
+            </div>
+            <Badge variant="outline" className={`tabular-nums text-[11px] ${hrDev >= 0 ? "bg-red-50 text-red-600 border-red-200" : "bg-sky-50 text-sky-600 border-sky-200"}`}>
+              {hrDev >= 0 ? "+" : ""}{hrDev}
+            </Badge>
+          </div>
 
-      <div className={cardClass}>
-        <p className="flex items-center gap-1.5 text-xs font-medium text-zinc-500">
-          <ChartLine size={14} weight="duotone" className="text-violet-400" />
-          HRV
-        </p>
-        <p className="text-xl font-semibold text-zinc-800">{vitals.hrv} <span className="text-xs font-normal text-zinc-500">ms</span></p>
-        <p className={`text-xs ${hrvPct >= 0 ? "text-sky-600" : "text-amber-600"}`}>{hrvPct >= 0 ? "+" : ""}{hrvPct}%</p>
-        <Sparkline data={history.hrv.length ? history.hrv : [vitals.hrv]} color="#8B5CF6" baseline={HRV_BASELINE} width={w} height={h} />
-      </div>
+          <div className="mb-3 flex items-baseline gap-1.5">
+            <span className="text-3xl font-bold tabular-nums text-slate-900">{vitals.heartRate}</span>
+            <span className="text-sm font-medium text-slate-400">BPM</span>
+          </div>
 
-      <div className={cardClass}>
-        <p className="flex items-center gap-1.5 text-xs font-medium text-zinc-500">
-          <ActivityIcon size={14} weight="duotone" className="text-sky-400" />
-          Activity
-        </p>
-        <ActivityLabel state={vitals.activity} />
-      </div>
+          <VitalSparkline
+            data={history.hr}
+            dataKey="hr"
+            config={hrChartConfig}
+            color="#ef4444"
+            gradientId="hr-grad"
+            baseline={HR_BASELINE}
+            height={52}
+          />
+        </CardContent>
+      </Card>
 
-      <div className={cardClass}>
-        <p className="flex items-center gap-1.5 text-xs font-medium text-zinc-500">
-          <Gauge size={14} weight="duotone" className="text-zinc-400" />
-          Barometer
-        </p>
-        <p className="text-xl font-semibold text-zinc-800">{vitals.barometer} <span className="text-xs text-zinc-500">hPa</span></p>
-        <p className="text-xs text-zinc-500 capitalize">{vitals.barometerStability}</p>
+      {/* HRV */}
+      <Card className="flex-1">
+        <CardContent className="p-4">
+          <div className="mb-2 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-violet-50">
+                <Waveform size={15} weight="bold" className="text-violet-500" />
+              </div>
+              <span className="text-xs font-semibold tracking-wide text-slate-400 uppercase">HRV</span>
+            </div>
+            <Badge variant="outline" className={`tabular-nums text-[11px] ${hrvDev >= 0 ? "bg-emerald-50 text-emerald-600 border-emerald-200" : "bg-amber-50 text-amber-600 border-amber-200"}`}>
+              {hrvDev >= 0 ? "+" : ""}{hrvDev} ms
+            </Badge>
+          </div>
+
+          <div className="mb-3 flex items-baseline gap-1.5">
+            <span className="text-3xl font-bold tabular-nums text-slate-900">{vitals.hrv}</span>
+            <span className="text-sm font-medium text-slate-400">ms</span>
+          </div>
+
+          <VitalSparkline
+            data={history.hrv}
+            dataKey="hrv"
+            config={hrvChartConfig}
+            color="#8b5cf6"
+            gradientId="hrv-grad"
+            baseline={HRV_BASELINE}
+            height={44}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Activity + Barometer row */}
+      <div className="grid grid-cols-2 gap-2.5">
+        <Card>
+          <CardContent className="p-3.5">
+            <div className="mb-1.5 flex items-center gap-1.5">
+              <PersonSimpleWalk size={13} weight="bold" className="text-slate-400" />
+              <span className="text-[11px] font-semibold tracking-wide text-slate-400 uppercase">Activity</span>
+            </div>
+            <Badge variant="outline" className={activityStyle(vitals.activity)}>
+              {vitals.activity}
+            </Badge>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-3.5">
+            <div className="mb-1.5 flex items-center gap-1.5">
+              <Gauge size={13} weight="bold" className="text-slate-400" />
+              <span className="text-[11px] font-semibold tracking-wide text-slate-400 uppercase">Pressure</span>
+            </div>
+            <p className="text-lg font-bold tabular-nums text-slate-900">
+              {vitals.barometer}
+              <span className="ml-0.5 text-[11px] font-medium text-slate-400">hPa</span>
+            </p>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

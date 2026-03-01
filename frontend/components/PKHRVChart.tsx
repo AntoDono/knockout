@@ -1,26 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useCallback } from "react";
-import * as d3 from "d3";
+import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
+import {
+  ComposedChart, Area, Line, XAxis, YAxis, CartesianGrid,
+  ReferenceArea, ReferenceLine, Customized,
+} from "recharts";
+import { cn } from "@/lib/utils";
 
-interface PKPoint {
-  t: number;
-  concentration: number;
-}
-
-interface HRVPoint {
-  t: number;
-  hrv: number;
-}
-
-interface TroughZone {
-  start: number;
-  end: number;
-}
+interface ChartDataPoint { t: number; concentration: number; hrv: number }
+interface TroughZone { start: number; end: number }
 
 interface Props {
-  pkPoints: PKPoint[];
-  hrvPoints: HRVPoint[];
+  chartData: ChartDataPoint[];
   troughZones: TroughZone[];
   doseTimes: number[];
   episodeTimes: number[];
@@ -31,260 +22,248 @@ interface Props {
   mobile?: boolean;
 }
 
-const MARGIN = { top: 16, right: 48, bottom: 40, left: 48 };
-const HRV_MAX = 80;
-const CONC_MAX = 100;
+const chartConfig = {
+  concentration: { label: "Drug Level", color: "var(--chart-1)" },
+  hrv: { label: "HRV", color: "var(--chart-2)" },
+} satisfies ChartConfig;
 
-export function PKHRVChart({
-  pkPoints,
-  hrvPoints,
-  troughZones,
-  doseTimes,
-  episodeTimes,
-  now,
-  windowStart,
-  windowEnd,
-  highlightTime,
-  mobile = false,
-}: Props) {
-  const svgRef = useRef<SVGSVGElement>(null);
-  const wrapRef = useRef<HTMLDivElement>(null);
+const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  const draw = useCallback(() => {
-    if (!svgRef.current || !wrapRef.current || pkPoints.length === 0) return;
+function formatTick(t: number): string {
+  const d = new Date(t);
+  return `${DAYS[d.getDay()]} ${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
+}
 
-    const width = wrapRef.current.clientWidth;
-    const height = Math.max(160, wrapRef.current.clientHeight || (mobile ? 220 : 280));
-    const innerWidth = width - MARGIN.left - MARGIN.right;
-    const innerHeight = height - MARGIN.top - MARGIN.bottom;
+function formatTooltipTime(t: number): string {
+  const d = new Date(t);
+  return d.toLocaleString("en-US", { weekday: "short", hour: "numeric", minute: "2-digit" });
+}
 
-    d3.select(svgRef.current).selectAll("*").remove();
+/* ── Custom pulsing "now" dot rendered via Customized ── */
+function NowDot({ xAxisMap, yAxisMap, now, chartData }: {
+  xAxisMap?: Record<string, { scale: (v: number) => number }>;
+  yAxisMap?: Record<string, { scale: (v: number) => number }>;
+  now: number;
+  chartData: ChartDataPoint[];
+}) {
+  if (!xAxisMap || !yAxisMap) return null;
+  const xScale = Object.values(xAxisMap)[0]?.scale;
+  // yAxisId="conc" is the first Y axis
+  const yScale = Object.values(yAxisMap)[0]?.scale;
+  if (!xScale || !yScale) return null;
 
-    const xScale = d3
-      .scaleTime()
-      .domain([windowStart, windowEnd])
-      .range([0, innerWidth]);
+  const cx = xScale(now);
+  if (cx == null || isNaN(cx)) return null;
 
-    const yConc = d3
-      .scaleLinear()
-      .domain([0, CONC_MAX])
-      .range([innerHeight, 0])
-      .nice();
-
-    const yHRV = d3
-      .scaleLinear()
-      .domain([0, HRV_MAX])
-      .range([innerHeight, 0])
-      .nice();
-
-    const svg = d3
-      .select(svgRef.current)
-      .attr("width", width)
-      .attr("height", height)
-      .attr("viewBox", `0 0 ${width} ${height}`);
-
-    const g = svg
-      .append("g")
-      .attr("transform", `translate(${MARGIN.left},${MARGIN.top})`);
-
-    const defs = svg.append("defs");
-
-    const concGrad = defs
-      .append("linearGradient")
-      .attr("id", "pk-gradient")
-      .attr("x1", 0)
-      .attr("x2", 0)
-      .attr("y1", 0)
-      .attr("y2", 1);
-    concGrad.append("stop").attr("offset", "0%").attr("stop-color", "#38bdf8");
-    concGrad
-      .append("stop")
-      .attr("offset", "100%")
-      .attr("stop-color", "rgba(56,189,248,0.1)");
-
-    const concLine = d3
-      .line<PKPoint>()
-      .x((d) => xScale(d.t))
-      .y((d) => yConc(d.concentration))
-      .curve(d3.curveMonotoneX);
-
-    const hrvLine = d3
-      .line<HRVPoint>()
-      .x((d) => xScale(d.t))
-      .y((d) => yHRV(d.hrv))
-      .curve(d3.curveMonotoneX);
-
-    troughZones.forEach((zone) => {
-      const x1 = xScale(zone.start);
-      const x2 = xScale(zone.end);
-      g.append("rect")
-        .attr("x", x1)
-        .attr("y", 0)
-        .attr("width", Math.max(2, x2 - x1))
-        .attr("height", innerHeight)
-        .attr("fill", "rgba(239,68,68,0.12)")
-        .attr("rx", 4);
-    });
-
-    const pkPath = g.append("path").datum(pkPoints).attr("fill", "none");
-
-    const area = d3
-      .area<PKPoint>()
-      .x((d) => xScale(d.t))
-      .y0(innerHeight)
-      .y1((d) => yConc(d.concentration))
-      .curve(d3.curveMonotoneX);
-
-    g.insert("path", ":first-child")
-      .datum(pkPoints)
-      .attr("fill", "url(#pk-gradient)")
-      .attr("d", area as unknown as () => string)
-      .attr("opacity", 0)
-      .transition()
-      .duration(1000)
-      .ease(d3.easeCubicInOut)
-      .attr("opacity", 1);
-
-    pkPath
-      .attr("d", concLine as unknown as () => string)
-      .attr("stroke", "#38bdf8")
-      .attr("stroke-width", 2.5)
-      .attr("stroke-linecap", "round")
-      .attr("opacity", 0)
-      .attr("filter", "url(#glow)")
-      .transition()
-      .duration(1000)
-      .ease(d3.easeCubicInOut)
-      .attr("opacity", 1);
-
-    const glowFilter = defs.append("filter").attr("id", "glow");
-    glowFilter
-      .append("feGaussianBlur")
-      .attr("stdDeviation", 2)
-      .attr("result", "coloredBlur");
-    const feMerge = glowFilter.append("feMerge");
-    feMerge.append("feMergeNode").attr("in", "coloredBlur");
-    feMerge.append("feMergeNode").attr("in", "SourceGraphic");
-
-    g.append("path")
-      .datum(hrvPoints)
-      .attr("d", hrvLine as unknown as () => string)
-      .attr("fill", "none")
-      .attr("stroke", "#8B5CF6")
-      .attr("stroke-width", 2)
-      .attr("stroke-dasharray", "6 4")
-      .attr("stroke-linecap", "round")
-      .attr("opacity", 0)
-      .transition()
-      .duration(1000)
-      .delay(200)
-      .ease(d3.easeCubicInOut)
-      .attr("opacity", 0.9);
-
-    g.append("line")
-      .attr("x1", xScale(now))
-      .attr("x2", xScale(now))
-      .attr("y1", 0)
-      .attr("y2", innerHeight)
-      .attr("stroke", "#64748b")
-      .attr("stroke-width", 1)
-      .attr("stroke-dasharray", "4 4");
-
-    episodeTimes.forEach((t) => {
-      g.append("circle")
-        .attr("cx", xScale(t))
-        .attr("cy", innerHeight + 4)
-        .attr("r", 4)
-        .attr("fill", "#ef4444");
-    });
-
-    doseTimes.forEach((t) => {
-      const gPill = g.append("g").attr("transform", `translate(${xScale(t)},${innerHeight + 2})`);
-      gPill
-        .append("rect")
-        .attr("x", -6)
-        .attr("y", -5)
-        .attr("width", 12)
-        .attr("height", 10)
-        .attr("rx", 2)
-        .attr("fill", "#38bdf8")
-        .attr("opacity", 0.9);
-      gPill
-        .append("line")
-        .attr("x1", -3)
-        .attr("x2", 3)
-        .attr("y1", 0)
-        .attr("y2", 0)
-        .attr("stroke", "#fff")
-        .attr("stroke-width", 1.5);
-    });
-
-    if (highlightTime != null) {
-      const x = xScale(highlightTime);
-      if (x >= 0 && x <= innerWidth) {
-        g.append("line")
-          .attr("x1", x)
-          .attr("x2", x)
-          .attr("y1", 0)
-          .attr("y2", innerHeight)
-          .attr("stroke", "#f59e0b")
-          .attr("stroke-width", 2)
-          .attr("opacity", 0.8);
-      }
-    }
-
-    const xAxis = d3.axisBottom(xScale).ticks(6).tickFormat((d) => {
-      const date = d as Date;
-      return d3.timeFormat("%a %H:%M")(date);
-    });
-    g.append("g")
-      .attr("transform", `translate(0,${innerHeight})`)
-      .call(xAxis)
-      .attr("color", "#64748b")
-      .selectAll("text")
-      .attr("font-size", "11px");
-
-    const yLeft = d3.axisLeft(yConc).ticks(5).tickFormat((d) => `${d}%`);
-    g.append("g").call(yLeft).attr("color", "#38bdf8").selectAll("text").attr("font-size", "11px");
-
-    const yRight = d3.axisRight(yHRV).ticks(5).tickFormat((d) => `${d}`);
-    g.append("g")
-      .attr("transform", `translate(${innerWidth},0)`)
-      .call(yRight)
-      .attr("color", "#8B5CF6")
-      .selectAll("text")
-      .attr("font-size", "11px");
-  }, [
-    pkPoints,
-    hrvPoints,
-    troughZones,
-    doseTimes,
-    episodeTimes,
-    now,
-    windowStart,
-    windowEnd,
-    highlightTime,
-    mobile,
-  ]);
-
-  useEffect(() => {
-    draw();
-    const ro = new ResizeObserver(draw);
-    if (wrapRef.current) ro.observe(wrapRef.current);
-    return () => ro.disconnect();
-  }, [draw]);
+  const nearest = chartData.reduce((a, b) =>
+    Math.abs(a.t - now) < Math.abs(b.t - now) ? a : b
+  );
+  const cy = yScale(nearest.concentration);
+  if (cy == null || isNaN(cy)) return null;
 
   return (
-    <div
-      ref={wrapRef}
-      className={`h-full min-h-[160px] overflow-x-auto overflow-y-hidden ${mobile ? "touch-pan-x" : ""}`}
-      style={{ minWidth: mobile ? 800 : undefined }}
-    >
-      <svg
-        ref={svgRef}
-        className="min-w-full"
-        style={{ minWidth: mobile ? 800 : "100%" }}
-      />
+    <g>
+      {/* "NOW" label */}
+      <text x={cx} y={-2} textAnchor="middle" fill="#64748b" fontSize={10} fontWeight={600}>
+        NOW
+      </text>
+      {/* Dashed vertical line */}
+      <line x1={cx} x2={cx} y1={8} y2={yScale(0)} stroke="#475569" strokeWidth={1} strokeDasharray="4 3" />
+      {/* Pulsing outer glow */}
+      <circle cx={cx} cy={cy} r={8} fill="#0ea5e9" opacity={0.15}>
+        <animate attributeName="r" values="6;10;6" dur="2s" repeatCount="indefinite" />
+      </circle>
+      {/* Inner dot */}
+      <circle cx={cx} cy={cy} r={4} fill="#0ea5e9" stroke="#fff" strokeWidth={1.5} />
+    </g>
+  );
+}
+
+/* ── Dose + Episode markers rendered via Customized ── */
+function Markers({ xAxisMap, yAxisMap, doseTimes, episodeTimes }: {
+  xAxisMap?: Record<string, { scale: (v: number) => number }>;
+  yAxisMap?: Record<string, { scale: (v: number) => number }>;
+  doseTimes: number[];
+  episodeTimes: number[];
+}) {
+  if (!xAxisMap || !yAxisMap) return null;
+  const xScale = Object.values(xAxisMap)[0]?.scale;
+  const yScale = Object.values(yAxisMap)[0]?.scale;
+  if (!xScale || !yScale) return null;
+
+  const bottomY = yScale(0);
+  if (bottomY == null || isNaN(bottomY)) return null;
+
+  return (
+    <g>
+      {/* Dose markers: blue circles at bottom */}
+      {doseTimes.map((t) => {
+        const dx = xScale(t);
+        if (dx == null || isNaN(dx)) return null;
+        return (
+          <g key={`dose-${t}`}>
+            <line x1={dx} x2={dx} y1={bottomY - 16} y2={bottomY}
+              stroke="#0ea5e9" strokeWidth={1.5} strokeLinecap="round" />
+            <circle cx={dx} cy={bottomY - 18} r={3.5}
+              fill="#0ea5e9" stroke="#fff" strokeWidth={1} />
+          </g>
+        );
+      })}
+      {/* Episode markers: red diamonds below axis */}
+      {episodeTimes.map((t) => {
+        const ex = xScale(t);
+        if (ex == null || isNaN(ex)) return null;
+        return (
+          <path
+            key={`ep-${t}`}
+            d={`M${ex},${bottomY + 2} l4,6 -4,6 -4,-6z`}
+            fill="#ef4444" stroke="#fff" strokeWidth={0.5}
+          />
+        );
+      })}
+    </g>
+  );
+}
+
+/* ── Main chart component ─────────────────────────────── */
+
+export function PKHRVChart({
+  chartData, troughZones, doseTimes, episodeTimes,
+  now, windowStart, windowEnd, highlightTime,
+  mobile = false,
+}: Props) {
+  if (chartData.length === 0) return null;
+
+  return (
+    <div className={cn("h-full min-h-[180px]", mobile && "overflow-x-auto touch-pan-x scrollbar-thin")}>
+      <div style={{ minWidth: mobile ? 700 : undefined }} className="h-full">
+        <ChartContainer config={chartConfig} className="h-full w-full">
+          <ComposedChart
+            data={chartData}
+            margin={{ top: 20, right: 52, bottom: 8, left: 52 }}
+          >
+            <defs>
+              <linearGradient id="pkGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="#0ea5e9" stopOpacity={0.2} />
+                <stop offset="100%" stopColor="#0ea5e9" stopOpacity={0.01} />
+              </linearGradient>
+            </defs>
+
+            <CartesianGrid strokeDasharray="2 4" vertical={false} stroke="#e2e8f0" strokeWidth={0.5} />
+
+            {/* Trough zones */}
+            {troughZones.map((zone, i) => (
+              <ReferenceArea
+                key={`trough-${i}`}
+                x1={zone.start}
+                x2={zone.end}
+                yAxisId="conc"
+                fill="#ef4444"
+                fillOpacity={0.06}
+                strokeOpacity={0}
+              />
+            ))}
+
+            {/* Highlight line (selected episode) */}
+            {highlightTime != null && (
+              <ReferenceLine
+                x={highlightTime}
+                yAxisId="conc"
+                stroke="#f59e0b"
+                strokeWidth={1.5}
+                strokeOpacity={0.7}
+              />
+            )}
+
+            <XAxis
+              dataKey="t"
+              type="number"
+              domain={[windowStart, windowEnd]}
+              scale="time"
+              tickFormatter={formatTick}
+              tick={{ fontSize: 10, fill: "#94a3b8", fontWeight: 500 }}
+              tickLine={false}
+              axisLine={{ stroke: "#e2e8f0" }}
+              tickCount={mobile ? 4 : 6}
+            />
+
+            <YAxis
+              yAxisId="conc"
+              domain={[0, 100]}
+              tickFormatter={(v) => `${v}%`}
+              tick={{ fontSize: 10, fill: "#0ea5e9", fontWeight: 500 }}
+              tickLine={false}
+              axisLine={false}
+              width={42}
+            />
+
+            <YAxis
+              yAxisId="hrv"
+              orientation="right"
+              domain={[0, 80]}
+              tick={{ fontSize: 10, fill: "#8b5cf6", fontWeight: 500 }}
+              tickLine={false}
+              axisLine={false}
+              width={42}
+            />
+
+            <ChartTooltip
+              content={
+                <ChartTooltipContent
+                  labelFormatter={(_, payload) => {
+                    if (payload?.[0]?.payload?.t) {
+                      return formatTooltipTime(payload[0].payload.t);
+                    }
+                    return "";
+                  }}
+                  formatter={(value, name) => {
+                    if (name === "concentration") return [`${Math.round(value as number)}%`, "Drug Level"];
+                    if (name === "hrv") return [`${Math.round(value as number)} ms`, "HRV"];
+                    return [value, name];
+                  }}
+                />
+              }
+            />
+
+            {/* PK area fill + line */}
+            <Area
+              yAxisId="conc"
+              dataKey="concentration"
+              type="monotone"
+              stroke="#0ea5e9"
+              strokeWidth={2}
+              fill="url(#pkGrad)"
+              dot={false}
+              isAnimationActive={false}
+            />
+
+            {/* HRV dashed line */}
+            <Line
+              yAxisId="hrv"
+              dataKey="hrv"
+              type="monotone"
+              stroke="#8b5cf6"
+              strokeWidth={1.5}
+              strokeDasharray="5 3"
+              strokeOpacity={0.7}
+              dot={false}
+              isAnimationActive={false}
+            />
+
+            {/* Custom elements rendered via Customized */}
+            <Customized
+              component={(props: Record<string, unknown>) =>
+                <NowDot {...props as Record<string, unknown> & { xAxisMap: Record<string, { scale: (v: number) => number }>; yAxisMap: Record<string, { scale: (v: number) => number }> }} now={now} chartData={chartData} />
+              }
+            />
+            <Customized
+              component={(props: Record<string, unknown>) =>
+                <Markers {...props as Record<string, unknown> & { xAxisMap: Record<string, { scale: (v: number) => number }>; yAxisMap: Record<string, { scale: (v: number) => number }> }} doseTimes={doseTimes} episodeTimes={episodeTimes} />
+              }
+            />
+          </ComposedChart>
+        </ChartContainer>
+      </div>
     </div>
   );
 }

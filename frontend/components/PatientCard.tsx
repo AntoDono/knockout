@@ -1,16 +1,25 @@
 "use client";
 
-import { Heart } from "@phosphor-icons/react";
+import { User, Heart } from "@phosphor-icons/react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 export function PatientCard() {
   return (
-    <div className="rounded-[20px] bg-white p-3 shadow-[0_4px_20px_rgba(56,189,248,0.08)]">
-      <p className="flex items-center gap-1.5 text-xs font-medium text-zinc-500">
-        <Heart size={14} weight="duotone" className="text-sky-500" />
-        Patient
-      </p>
-      <p className="text-lg font-semibold text-zinc-800">Dishita</p>
-      <p className="mt-0.5 text-xs text-zinc-600">TKOS · ICD: Yes</p>
-    </div>
+    <Card>
+      <CardContent className="flex items-center gap-3 p-4">
+        <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-sky-50">
+          <User size={18} weight="bold" className="text-sky-600" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-base font-bold text-slate-900">Dishita Agarwal</p>
+          <p className="text-xs text-slate-500">19 y/o · TKOS</p>
+        </div>
+        <Badge variant="secondary" className="gap-1 bg-sky-50 text-sky-700">
+          <Heart size={12} weight="fill" className="text-sky-500" />
+          ICD
+        </Badge>
+      </CardContent>
+    </Card>
   );
 }

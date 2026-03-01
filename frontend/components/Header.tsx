@@ -1,6 +1,8 @@
 "use client";
 
 import { ChartLine, Pill, Export } from "@phosphor-icons/react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 interface Props {
   activeTab: string;
@@ -17,41 +19,53 @@ const TABS = [
 
 export function Header({ activeTab, onTab, mobile, onDrugCheckerClick }: Props) {
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between gap-4 rounded-b-[22px] bg-white/95 px-4 py-3 shadow-[0_4px_20px_rgba(56,189,248,0.06)] backdrop-blur sm:px-6">
+    <header className="sticky top-0 z-20 flex items-center justify-between gap-4 border-b border-slate-100 bg-white/90 px-4 py-3 backdrop-blur-lg sm:px-6">
       <div className="flex items-center gap-3">
-        <span className="text-xl font-bold text-sky-600">Guardrail</span>
-        <span className="flex items-center gap-1.5 text-sm text-zinc-500">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
-          Live · Dishita&apos;s Watch
-        </span>
+        <span className="text-lg font-bold tracking-tight text-slate-900">Guardrail</span>
+        <Badge variant="outline" className="gap-1.5 border-emerald-200 bg-emerald-50 text-emerald-700">
+          <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse-live" />
+          Live
+        </Badge>
       </div>
+
       {!mobile && (
-        <nav className="flex gap-1">
+        <nav className="flex gap-0.5">
           {TABS.map((t) => {
             const Icon = t.Icon;
+            const active = activeTab === t.id;
             return (
-              <button
+              <Button
                 key={t.id}
-                type="button"
+                variant={active ? "secondary" : "ghost"}
+                size="sm"
                 onClick={() => onTab(t.id)}
-                className={`flex items-center gap-2 rounded-xl px-4 py-2 text-sm font-medium transition ${activeTab === t.id ? "bg-sky-100 text-sky-700" : "text-zinc-600 hover:bg-zinc-100"}`}
+                className={`relative gap-2 ${
+                  active
+                    ? "text-slate-900"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
               >
-                <Icon size={18} weight="duotone" />
+                <Icon size={16} weight={active ? "fill" : "duotone"} />
                 {t.label}
-              </button>
+                {active && (
+                  <span className="absolute bottom-0 left-3 right-3 h-0.5 rounded-full bg-sky-500" />
+                )}
+              </Button>
             );
           })}
         </nav>
       )}
+
       {mobile && onDrugCheckerClick && (
-        <button
-          type="button"
+        <Button
+          variant="outline"
+          size="sm"
           onClick={onDrugCheckerClick}
-          className="flex items-center gap-2 rounded-xl px-3 py-1.5 text-sm font-medium text-sky-600 hover:bg-sky-50"
+          className="gap-1.5 text-xs font-semibold"
         >
-          <Pill size={18} weight="duotone" />
+          <Pill size={14} weight="duotone" />
           Drug Checker
-        </button>
+        </Button>
       )}
     </header>
   );

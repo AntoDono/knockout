@@ -1,13 +1,21 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { DRUG_OPTIONS } from "@/lib/drugs";
 import type { QtRisk } from "@/lib/types";
 
 function riskColor(risk: QtRisk): string {
-  if (risk === "none") return "bg-emerald-100 border-emerald-200 text-emerald-800";
-  if (risk === "moderate") return "bg-amber-100 border-amber-200 text-amber-800";
-  return "bg-red-100 border-red-200 text-red-800";
+  if (risk === "none") return "border-emerald-200 bg-emerald-50";
+  if (risk === "moderate") return "border-amber-200 bg-amber-50";
+  return "border-red-200 bg-red-50";
+}
+
+function riskBadgeVariant(risk: QtRisk) {
+  if (risk === "high") return "destructive" as const;
+  return "outline" as const;
 }
 
 function riskLabel(risk: QtRisk): string {
@@ -29,39 +37,48 @@ export function DrugCheckerTab() {
     <div className="mx-auto max-w-2xl px-4 py-8">
       <h1 className="text-2xl font-semibold text-zinc-800">Drug Checker</h1>
       <p className="mt-1 text-zinc-500">Check QT risk before taking a medication.</p>
-      <input
+      <Input
         type="text"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Search medication name..."
-        className="mt-6 w-full rounded-[22px] border border-zinc-200 px-5 py-4 text-lg focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20"
+        className="mt-6 h-14 rounded-2xl text-lg px-5"
         autoFocus
       />
       <div className="mt-6">
         {query.trim() && results.length === 0 && (
-          <p className="rounded-[22px] border border-zinc-100 bg-zinc-50 p-6 text-center text-zinc-500">
-            No matches. Try another name.
-          </p>
+          <Card className="bg-zinc-50">
+            <CardContent className="p-6 text-center text-zinc-500">
+              No matches. Try another name.
+            </CardContent>
+          </Card>
         )}
         {results.length > 0 && (
           <div className="space-y-3">
             {results.map((drug) => (
-              <div
-                key={drug.name}
-                className={`rounded-[22px] border-2 p-5 ${riskColor(drug.qtRisk)}`}
-              >
-                <p className="text-lg font-semibold">{drug.name}</p>
-                <p className="mt-1 text-sm opacity-90">t½ {drug.tHalfHours}h</p>
-                <p className="mt-2 font-medium">{riskLabel(drug.qtRisk)}</p>
-                {drug.qtRisk === "high" && (
-                  <div className="mt-4 rounded-xl bg-white/80 p-4 text-sm">
-                    <p className="font-medium text-red-900">Clinician card</p>
-                    <p className="mt-2 text-red-800">
-                      I have Triadin Knockout Syndrome (TKOS). This medication may be dangerous for me. Please contact my cardiologist before administering.
-                    </p>
+              <Card key={drug.name} className={`border-2 ${riskColor(drug.qtRisk)}`}>
+                <CardContent className="p-5">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <p className="text-lg font-semibold">{drug.name}</p>
+                      <p className="mt-1 text-sm opacity-90">t½ {drug.tHalfHours}h</p>
+                    </div>
+                    <Badge variant={riskBadgeVariant(drug.qtRisk)}>
+                      {riskLabel(drug.qtRisk)}
+                    </Badge>
                   </div>
-                )}
-              </div>
+                  {drug.qtRisk === "high" && (
+                    <Card className="mt-4 bg-white/80">
+                      <CardContent className="p-4 text-sm">
+                        <p className="font-medium text-red-900">Clinician card</p>
+                        <p className="mt-2 text-red-800">
+                          I have Triadin Knockout Syndrome (TKOS). This medication may be dangerous for me. Please contact my cardiologist before administering.
+                        </p>
+                      </CardContent>
+                    </Card>
+                  )}
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}

@@ -1,6 +1,12 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import type { DrugOption } from "@/lib/types";
 import { DRUG_OPTIONS } from "@/lib/drugs";
 
@@ -35,16 +41,14 @@ export function AddMedicationModal({ isOpen, onClose, onAdd }: Props) {
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={onClose}>
-      <div
-        className="w-full max-w-md rounded-[22px] bg-white p-6 shadow-xl"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 className="text-lg font-semibold text-zinc-800">Add medication</h2>
-        <input
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Add medication</DialogTitle>
+        </DialogHeader>
+
+        <Input
           type="text"
           value={query}
           onChange={(e) => {
@@ -52,68 +56,59 @@ export function AddMedicationModal({ isOpen, onClose, onAdd }: Props) {
             setSelected(null);
           }}
           placeholder="Search drug name..."
-          className="mt-4 w-full rounded-xl border border-zinc-200 px-4 py-3 text-base focus:border-sky-400 focus:outline-none focus:ring-2 focus:ring-sky-400/20"
           autoFocus
         />
-        <ul className="mt-2 max-h-48 overflow-y-auto rounded-xl border border-zinc-100">
-          {filtered.map((d) => (
-            <li key={d.name}>
-              <button
-                type="button"
-                onClick={() => setSelected(d)}
-                className={`flex w-full items-center justify-between px-4 py-3 text-left hover:bg-sky-50 ${selected?.name === d.name ? "bg-sky-50" : ""}`}
-              >
-                <span className="font-medium">{d.name}</span>
-                <span className="text-xs text-zinc-500">t½ {d.tHalfHours}h · QT {d.qtRisk}</span>
-              </button>
-            </li>
-          ))}
-        </ul>
+
+        <ScrollArea className="max-h-48">
+          <ul className="rounded-xl border border-zinc-100">
+            {filtered.map((d) => (
+              <li key={d.name}>
+                <button
+                  type="button"
+                  onClick={() => setSelected(d)}
+                  className={`flex w-full items-center justify-between px-4 py-3 text-left hover:bg-sky-50 ${selected?.name === d.name ? "bg-sky-50" : ""}`}
+                >
+                  <span className="font-medium">{d.name}</span>
+                  <span className="text-xs text-zinc-500">t½ {d.tHalfHours}h · QT {d.qtRisk}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </ScrollArea>
+
         {selected && (
-          <div className="mt-4 space-y-3">
-            <div>
-              <label className="text-xs font-medium text-zinc-500">Dose</label>
-              <input
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label>Dose</Label>
+              <Input
                 type="text"
                 value={dose}
                 onChange={(e) => setDose(e.target.value)}
                 placeholder="e.g. 40mg"
-                className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm"
               />
             </div>
-            <div>
-              <label className="text-xs font-medium text-zinc-500">Frequency</label>
-              <select
-                value={frequency}
-                onChange={(e) => setFrequency(e.target.value)}
-                className="mt-1 w-full rounded-xl border border-zinc-200 px-3 py-2 text-sm"
-              >
-                <option value="once daily">Once daily</option>
-                <option value="twice daily">Twice daily</option>
-                <option value="three times daily">Three times daily</option>
-                <option value="as needed">As needed</option>
-              </select>
+            <div className="space-y-1.5">
+              <Label>Frequency</Label>
+              <Select value={frequency} onValueChange={setFrequency}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="once daily">Once daily</SelectItem>
+                  <SelectItem value="twice daily">Twice daily</SelectItem>
+                  <SelectItem value="three times daily">Three times daily</SelectItem>
+                  <SelectItem value="as needed">As needed</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         )}
-        <div className="mt-6 flex gap-3">
-          <button
-            type="button"
-            onClick={onClose}
-            className="flex-1 rounded-xl border border-zinc-200 py-2.5 font-medium text-zinc-600 hover:bg-zinc-50"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleSubmit}
-            disabled={!selected}
-            className="flex-1 rounded-xl bg-sky-400 py-2.5 font-medium text-white hover:bg-sky-500 disabled:opacity-50"
-          >
-            Add
-          </button>
-        </div>
-      </div>
-    </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button onClick={handleSubmit} disabled={!selected}>Add</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
