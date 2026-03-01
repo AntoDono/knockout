@@ -30,6 +30,13 @@ npm run lint                     # ESLint
 cd backend && rm -f knockout.db && uv run python -c "from database import init_db; init_db()"
 ```
 
+**After merges:** If `knockout.db` has merge conflicts, resolve by running `init_db()` — it creates missing tables (`safe=True`) without touching existing data. `sqlite3 knockout.db ".tables"` to verify.
+
+### Synthetic demo data
+```bash
+curl -X POST http://localhost:8080/synthetic/generate   # or via the app
+```
+
 ## Documentation
 
 `docs/overview.md` — full project vision, the 6-layer architecture, and the three blind spots (ICD Gap, Visit Gap, Why Gap). Read this first for context.
@@ -38,7 +45,7 @@ cd backend && rm -f knockout.db && uv run python -c "from database import init_d
 
 ## Architecture
 
-**Backend:** FastAPI (Python 3.13, uv) with Peewee ORM on SQLite (`knockout.db`).
+**Backend:** FastAPI (Python 3.13, uv) with Peewee ORM on SQLite (`knockout.db`). The DB file is tracked in git with seed data.
 **Frontend:** Next.js 16, React 19, Tailwind CSS v4, D3.js for charts.
 
 ### API routes
@@ -124,6 +131,10 @@ Frontend currently simulates vitals; not yet wired to backend API.
 ## Environment
 
 `backend/.env` needs `XAI_API_KEY` for Grok-powered drug half-life lookup. Server starts fine without it — only `POST /drugs` auto-lookup fails.
+
+## Preferences
+
+- No pytest or test files unless explicitly requested. Just implement and verify the server starts.
 
 ## Test patient
 
