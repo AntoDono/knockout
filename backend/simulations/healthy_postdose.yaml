@@ -17,15 +17,15 @@ heart:
     - start: "0m"
       end:   "3m"
       pattern: normal
-      bpm: 72
+      bpm: 74
 
     - start: "3m"
       end:   "7m"
       pattern: normal
-      bpm: 66
+      bpm: 70
       bpm_std: 2.0
 
     - start: "7m"
       end:   "10m"
       pattern: normal
-      bpm: 62
+      bpm: 68

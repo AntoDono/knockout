@@ -11,28 +11,28 @@ drugs:
         taken_at: "-4h"
 
 heart:
-  baseline_bpm: 64
+  baseline_bpm: 70
   noise_std:    2.0
   segments:
     - start: "0m"
       end:   "2m"
       pattern: normal
-      bpm: 64
+      bpm: 70
 
     - start: "2m"
       end:   "5m"
       pattern: normal
-      bpm: 78
+      bpm: 82
       bpm_std: 3.0
 
     - start: "5m"
       end:   "9m"
       pattern: normal
-      bpm: 85
+      bpm: 88
       bpm_std: 3.0
 
     - start: "9m"
       end:   "12m"
       pattern: normal
-      bpm: 68
+      bpm: 72
       bpm_std: 2.0

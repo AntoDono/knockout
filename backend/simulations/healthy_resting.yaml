@@ -11,10 +11,10 @@ drugs:
         taken_at: "-3h"
 
 heart:
-  baseline_bpm: 62
+  baseline_bpm: 70
   noise_std:    1.5
   segments:
     - start: "0m"
       end:   "10m"
       pattern: normal
-      bpm: 62
+      bpm: 70

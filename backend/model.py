@@ -25,17 +25,31 @@ from tqdm import tqdm
 TRAINING_DIR = Path(__file__).parent / "training_data"
 CHECKPOINT_PATH = Path(__file__).parent / "afib_resnet30.pt"
 WINDOW_LEN = 100
-WINDOW_STRIDE = 10
+WINDOW_STRIDE = 5
 
 
 # ---------------------------------------------------------------------------
 # Dataset
 # ---------------------------------------------------------------------------
 
+def _augment(x: torch.Tensor) -> torch.Tensor:
+    """Apply random noise + scale + DC shift to a BPM window."""
+    # Gaussian noise: σ = 1–3% of signal std (sensor jitter)
+    noise_std = x.std() * (0.01 + 0.02 * torch.rand(1).item())
+    x = x + torch.randn_like(x) * noise_std
+    # Random scale ±5% (calibration drift)
+    x = x * (0.95 + 0.10 * torch.rand(1).item())
+    # Random DC shift ±2 bpm (baseline wander)
+    x = x + (torch.rand(1).item() - 0.5) * 4.0
+    return x
+
+
 class AfibDataset(Dataset):
-    def __init__(self, data_dir: Path = TRAINING_DIR, window_len: int = WINDOW_LEN, stride: int = WINDOW_STRIDE):
+    def __init__(self, data_dir: Path = TRAINING_DIR, window_len: int = WINDOW_LEN,
+                 stride: int = WINDOW_STRIDE, aug_copies: int = 0):
         self.samples: list[tuple[torch.Tensor, int]] = []
         self.n_files = 0
+        originals: list[tuple[torch.Tensor, int]] = []
         for fp in sorted(glob.glob(str(data_dir / "*.json"))):
             with open(fp) as f:
                 rec = json.load(f)
@@ -52,10 +66,19 @@ class AfibDataset(Dataset):
             if len(bpm) >= window_len:
                 for start in range(0, len(bpm) - window_len + 1, stride):
                     window = bpm[start:start + window_len]
-                    self.samples.append((torch.tensor(window, dtype=torch.float32), label))
+                    originals.append((torch.tensor(window, dtype=torch.float32), label))
             else:
                 padded = bpm + [bpm[-1]] * (window_len - len(bpm))
-                self.samples.append((torch.tensor(padded, dtype=torch.float32), label))
+                originals.append((torch.tensor(padded, dtype=torch.float32), label))
+
+        self.n_original = len(originals)
+        self.samples.extend(originals)
+
+        for _ in range(aug_copies):
+            for x, y in originals:
+                self.samples.append((_augment(x.clone()), y))
+
+        self.n_augmented = len(self.samples) - self.n_original
 
     def __len__(self):
         return len(self.samples)
@@ -195,33 +218,54 @@ def build_optimizers(model: ResNet1d, lr: float = 0.02, wd: float = 0.01):
 # Training loop
 # ---------------------------------------------------------------------------
 
-def train(epochs: int = 50, val_split: float = 0.2):
-    ds = AfibDataset()
-    if len(ds) == 0:
+def train(epochs: int = 50, val_split: float = 0.2, aug_copies: int = 4):
+    ds = AfibDataset(aug_copies=aug_copies)
+    if ds.n_original == 0:
         print("No training data found in", TRAINING_DIR)
         return
 
     n_afib = sum(1 for _, y in ds.samples if y == 1)
     n_healthy = len(ds) - n_afib
 
-    # --- train / val split ---------------------------------------------------
-    n_val = max(1, int(len(ds) * val_split))
-    n_train = len(ds) - n_val
-    train_ds, val_ds = random_split(ds, [n_train, n_val])
+    # --- train / val split ----------------------------------------------------
+    # Split on original windows only, then include their augmented copies
+    # in training. Val stays clean (originals only).
+    n_val_orig = max(1, int(ds.n_original * val_split))
+    n_train_orig = ds.n_original - n_val_orig
+    orig_indices = list(range(ds.n_original))
+    import random
+    random.shuffle(orig_indices)
+    train_orig_idx = set(orig_indices[:n_train_orig])
+    val_orig_idx = orig_indices[n_train_orig:]
 
-    def _count_labels(subset):
-        a = sum(1 for i in subset.indices if ds.samples[i][1] == 1)
-        return a, len(subset) - a
+    # Augmented copies are stored at offsets: orig_idx + k * n_original
+    train_indices = []
+    for i in train_orig_idx:
+        train_indices.append(i)
+        for k in range(1, aug_copies + 1):
+            train_indices.append(i + k * ds.n_original)
+    val_indices = val_orig_idx
 
-    tr_afib, tr_healthy = _count_labels(train_ds)
-    va_afib, va_healthy = _count_labels(val_ds)
+    train_ds = torch.utils.data.Subset(ds, train_indices)
+    val_ds = torch.utils.data.Subset(ds, val_indices)
+
+    n_train = len(train_indices)
+    n_val = len(val_indices)
+
+    def _count_labels(indices):
+        a = sum(1 for i in indices if ds.samples[i][1] == 1)
+        return a, len(indices) - a
+
+    tr_afib, tr_healthy = _count_labels(train_indices)
+    va_afib, va_healthy = _count_labels(val_indices)
 
     print(f"{'─' * 55}")
     print(f"  Files    : {ds.n_files}")
-    print(f"  Windows  : {len(ds)} total ({n_afib} afib, {n_healthy} healthy)")
-    print(f"  Window   : {WINDOW_LEN} samples, stride {WINDOW_STRIDE}")
-    print(f"  Train    : {n_train} windows ({tr_afib} afib, {tr_healthy} healthy)")
-    print(f"  Val      : {n_val} windows ({va_afib} afib, {va_healthy} healthy)")
+    print(f"  Original : {ds.n_original} windows ({WINDOW_LEN} samples, stride {WINDOW_STRIDE})")
+    print(f"  Augmented: {ds.n_augmented} noisy copies ({aug_copies}x)")
+    print(f"  Total    : {len(ds)} windows ({n_afib} afib, {n_healthy} healthy)")
+    print(f"  Train    : {n_train} ({tr_afib} afib, {tr_healthy} healthy)")
+    print(f"  Val      : {n_val} clean ({va_afib} afib, {va_healthy} healthy)")
     print(f"{'─' * 55}")
 
     train_loader = DataLoader(train_ds, batch_size=max(1, n_train), shuffle=True)
@@ -333,7 +377,9 @@ def predict_afib(bpm_readings: list[float]) -> dict:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Train AFib ResNet-30")
-    parser.add_argument("--epochs", type=int, default=15)
-    parser.add_argument("--val-split", type=float, default=0.2)
+    parser.add_argument("--epochs", type=int, default=30)
+    parser.add_argument("--val-split", type=float, default=0.1)
+    parser.add_argument("--aug-copies", type=int, default=10,
+                        help="Number of noisy copies per original window (default: 2)")
     args = parser.parse_args()
-    train(epochs=args.epochs, val_split=args.val_split)
+    train(epochs=args.epochs, val_split=args.val_split, aug_copies=args.aug_copies)
