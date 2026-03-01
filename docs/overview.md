@@ -113,11 +113,11 @@ No typing. No form. No description needed. The context is captured automatically
 
 ---
 
-### Layer 5: Pattern Learning (Future Vision)
+### Layer 5: Pattern Learning via Bayesian Model (Future Vision)
 
 *This layer is part of the long-term vision. We describe the architecture at the hackathon but do not implement it.*
 
-**What it would do:** Learn her personal pre-episode pattern over time by analyzing what the passive streams looked like before each tap.
+**What it would do:** A Bayesian learning model that learns her personal pre-episode pattern over time by analyzing what the passive streams looked like before each tap.
 
 **Why it matters:** TKOS triggers are multi-factorial and patient-specific. For one patient, it might be heat + medication trough. For another, sleep debt + exertion. No clinician, seeing the patient for 15 minutes every 3 months, can identify these compound patterns. A learning model watches continuously and remembers everything.
 
