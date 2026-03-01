@@ -100,7 +100,7 @@ class ResNet1d(nn.Module):
     def __init__(
         self,
         num_classes: int = 2,
-        channels: tuple[int, ...] = (64, 192, 384),
+        channels: tuple[int, ...] = (32, 64, 192),
         blocks: tuple[int, ...] = (2, 2, 2),
     ):
         super().__init__()
