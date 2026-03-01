@@ -43,30 +43,36 @@ cd backend && rm -f knockout.db && uv run python -c "from database import init_d
 
 ### API routes
 
-`server.py` is a thin FastAPI wiring file. All routes live in domain modules:
+`server.py` is a thin FastAPI wiring file. All routes live in `routes/`:
 
 ```
-/push              POST   sensor.py    – ingest Sensor Logger payloads
-/stats             GET    sensor.py    – per-sensor request counts
-/ws                WS     sensor.py    – live HR stream + AFib detection
+/push              POST   routes/sensor.py    – ingest Sensor Logger payloads
+/stats             GET    routes/sensor.py    – per-sensor request counts
+/ws                WS     routes/sensor.py    – live HR stream + AFib detection
 
-/drugs             GET    drugs.py     – list registered drugs
-/drugs             POST   drugs.py     – register drug (auto-lookup half-life via Grok)
-/doses             GET    drugs.py     – list doses (?drug= filter)
-/doses             POST   drugs.py     – log a dose
-/doses/{id}        DELETE drugs.py     – delete a dose
-/levels            GET    drugs.py     – current PK decay levels
+/drugs             GET    routes/drugs.py     – list registered drugs
+/drugs             POST   routes/drugs.py     – register drug (auto-lookup half-life via Grok)
+/doses             GET    routes/drugs.py     – list doses (?drug= filter)
+/doses             POST   routes/drugs.py     – log a dose
+/doses/{id}        DELETE routes/drugs.py     – delete a dose
+/levels            GET    routes/drugs.py     – current PK decay levels
 
-/patient           GET    patient.py   – full profile + diagnoses + allergies
-/patient/icd       GET    patient.py   – device, zones, episodes, shock history
-/patient/icd/gap   GET    patient.py   – ICD gap boundaries (70–190 bpm)
-/patient/ecg       GET    patient.py   – 14 historical ECG readings
-/patient/thresholds GET   patient.py   – current static thresholds
-/patient/medications GET  patient.py   – active medications with PK params
-/patient/triggers  GET    patient.py   – known triggers with source/confidence
+/patient           GET    routes/patient.py   – full profile + diagnoses + allergies
+/patient/icd       GET    routes/patient.py   – device, zones, episodes, shock history
+/patient/icd/gap   GET    routes/patient.py   – ICD gap boundaries (70–190 bpm)
+/patient/ecg       GET    routes/patient.py   – 14 historical ECG readings
+/patient/thresholds GET   routes/patient.py   – current static thresholds
+/patient/medications GET  routes/patient.py   – active medications with PK params
+/patient/triggers  GET    routes/patient.py   – known triggers with source/confidence
 
-/report            GET    reports.py   – generate cardiology PDF report
+/report            GET    routes/reports.py   – generate cardiology PDF report
 ```
+
+### Services (`services/`)
+
+Business logic utilities used by routes:
+- `heart_analyze.py` — AFib detection from BPM readings
+- `llm_tools.py` — Drug half-life lookup via Grok
 
 ### Database layer (`database.py`)
 
@@ -99,7 +105,7 @@ Frontend currently simulates vitals; not yet wired to backend API.
 
 **Static thresholds:** Patient-specific baselines from clinical records (resting HR 70 bpm is pacemaker-set, not intrinsic). Stored in `static_thresholds` table. Dynamic baselines (rolling averages from watch data) are a future Layer 2 concern.
 
-**AFib detection** (`heart_analyze.py`): Weighted voting across 6 HRV metrics (CV, RMSSD, pNN20, SD1/SD2, sample entropy, LF/HF). Needs >= 10 BPM samples. Broadcasts via WebSocket.
+**AFib detection** (`services/heart_analyze.py`): Weighted voting across 6 HRV metrics (CV, RMSSD, pNN20, SD1/SD2, sample entropy, LF/HF). Needs >= 10 BPM samples. Broadcasts via WebSocket.
 
 ## Environment
 

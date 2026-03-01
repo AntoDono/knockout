@@ -15,7 +15,7 @@ from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
 from database import Drug, Dose, get_current_levels
-from llm_tools import get_halflife
+from services.llm_tools import get_halflife
 
 router = APIRouter(tags=["drugs"])
 
