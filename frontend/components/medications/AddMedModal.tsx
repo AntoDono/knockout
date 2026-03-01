@@ -24,9 +24,17 @@ export function AddMedModal({ onAdded }: AddMedModalProps) {
   const [frequency, setFrequency] = useState("once_daily");
   const [submitting, setSubmitting] = useState(false);
 
-  const results = search.length >= 2
-    ? DRUG_OPTIONS.filter((d) => d.name.toLowerCase().includes(search.toLowerCase())).slice(0, 5)
-    : [];
+  const filtered = search.length > 0
+    ? DRUG_OPTIONS.filter((d) => d.name.toLowerCase().includes(search.toLowerCase()))
+    : DRUG_OPTIONS;
+
+  const CATEGORY_LABELS: Record<string, string> = {
+    "first-line": "Recommended for TKOS",
+    "alternative": "Alternative beta-blockers",
+    "reserve": "Reserve / refractory",
+    "qt-risk": "QT-risk (use with caution)",
+  };
+  const categories = ["first-line", "alternative", "reserve", "qt-risk"] as const;
 
   const handleSelect = (drug: DrugOption) => {
     setSelected(drug);
@@ -79,29 +87,49 @@ export function AddMedModal({ onAdded }: AddMedModalProps) {
                 className="pl-9"
               />
             </div>
-            {results.length > 0 && !selected && (
-              <div className="border rounded-xl overflow-hidden">
-                {results.map((drug) => (
-                  <button
-                    key={drug.name}
-                    onClick={() => handleSelect(drug)}
-                    className={cn(
-                      "w-full flex items-center justify-between p-3 text-left hover:bg-muted/50 transition-colors border-b last:border-b-0",
-                      drug.qtRisk === "high" && "bg-red-50/50"
-                    )}
-                  >
-                    <div>
-                      <p className="text-sm font-medium">{drug.name}</p>
-                      <p className="text-xs text-muted-foreground">t½ {drug.tHalfHours}h</p>
+            {!selected && (
+              <div className="space-y-3 max-h-72 overflow-y-auto">
+                {categories.map((cat) => {
+                  const drugs = filtered.filter((d) => d.category === cat);
+                  if (drugs.length === 0) return null;
+                  return (
+                    <div key={cat}>
+                      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider mb-1">
+                        {CATEGORY_LABELS[cat]}
+                      </p>
+                      <div className="border rounded-xl overflow-hidden">
+                        {drugs.map((drug) => (
+                          <button
+                            key={drug.name}
+                            onClick={() => handleSelect(drug)}
+                            className={cn(
+                              "w-full flex items-start justify-between p-3 text-left hover:bg-muted/50 transition-colors border-b last:border-b-0",
+                              drug.qtRisk === "high" && "bg-red-50/50"
+                            )}
+                          >
+                            <div className="flex-1 mr-2">
+                              <p className="text-sm font-medium">{drug.name}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{drug.description}</p>
+                              <p className="text-[10px] text-muted-foreground mt-1">t½ {drug.tHalfHours}h</p>
+                            </div>
+                            {drug.category === "first-line" && (
+                              <Badge variant="secondary" className="text-[10px] shrink-0 mt-0.5">Recommended</Badge>
+                            )}
+                            {drug.qtRisk !== "none" && drug.category !== "first-line" && (
+                              <Badge variant={drug.qtRisk === "high" ? "destructive" : "outline"} className="text-xs shrink-0 mt-0.5">
+                                {drug.qtRisk === "high" && <AlertTriangle className="h-3 w-3 mr-1" />}
+                                QT: {drug.qtRisk}
+                              </Badge>
+                            )}
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    {drug.qtRisk !== "none" && (
-                      <Badge variant={drug.qtRisk === "high" ? "destructive" : "outline"} className="text-xs">
-                        {drug.qtRisk === "high" && <AlertTriangle className="h-3 w-3 mr-1" />}
-                        QT: {drug.qtRisk}
-                      </Badge>
-                    )}
-                  </button>
-                ))}
+                  );
+                })}
+                {filtered.length === 0 && (
+                  <p className="text-sm text-muted-foreground text-center py-2">No medications found.</p>
+                )}
               </div>
             )}
           </div>

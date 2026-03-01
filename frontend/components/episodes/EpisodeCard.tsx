@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Clock, ChevronDown, Brain } from "lucide-react";
-import type { Episode } from "@/lib/types";
+import type { Episode, EpisodeInsight } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { EPISODE_INSIGHTS } from "@/lib/data/synthetic";
 import { EpisodeContext } from "./EpisodeContext";
@@ -10,12 +10,16 @@ import { DrugLevelStack } from "./DrugLevelStack";
 
 interface EpisodeCardProps {
   episode: Episode;
+  insightIndex?: number;
 }
 
-export function EpisodeCard({ episode: ep }: EpisodeCardProps) {
+export function EpisodeCard({ episode: ep, insightIndex }: EpisodeCardProps) {
   const [now] = useState(() => Date.now());
   const [expanded, setExpanded] = useState(false);
-  const insight = EPISODE_INSIGHTS.find((i) => i.id === ep.id);
+  const insight: EpisodeInsight | undefined =
+    insightIndex !== undefined && insightIndex < EPISODE_INSIGHTS.length
+      ? EPISODE_INSIGHTS[insightIndex]
+      : undefined;
   const date = new Date(ep.recordedAt);
   const dateStr = date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
   const timeStr = date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
@@ -75,7 +79,7 @@ export function EpisodeCard({ episode: ep }: EpisodeCardProps) {
         {expanded ? "Hide" : "View"} 24h context
       </button>
 
-      {expanded && <EpisodeContext episodeId={ep.id} />}
+      {expanded && <EpisodeContext episodeId={ep.id} insight={insight} />}
     </div>
   );
 }
