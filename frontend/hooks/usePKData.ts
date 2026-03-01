@@ -1,7 +1,16 @@
 "use client";
 import { useMemo, useState } from "react";
-import { MEDICATIONS } from "@/lib/data/synthetic";
+import { useFetch } from "@/lib/api";
 import { decayConcentration } from "@/lib/simulate";
+import type { Medication } from "@/lib/types";
+
+interface Dose {
+  id: number;
+  drug: string;
+  amountMg: number;
+  takenAt: string;
+  notes: string;
+}
 
 export interface PKDataPoint {
   time: number;
@@ -12,9 +21,11 @@ export interface PKDataPoint {
 
 export function usePKData(windowHours = 48) {
   const [mountTime] = useState(() => Date.now());
+  const { data: meds } = useFetch<Medication[]>("/patient/medications");
+  const { data: doses } = useFetch<Dose[]>("/doses");
 
   return useMemo(() => {
-    const nadolol = MEDICATIONS.find((m) => m.drugName === "nadolol");
+    const nadolol = meds?.find((m) => m.drugName === "nadolol");
     if (!nadolol?.halfLifeHours) return { data: [], nowTime: mountTime, troughZones: [] };
 
     const halfWindow = (windowHours / 2) * 60 * 60 * 1000;
@@ -22,28 +33,47 @@ export function usePKData(windowHours = 48) {
     const end = mountTime + halfWindow;
     const points: PKDataPoint[] = [];
 
+    const nadololDoses = doses?.filter((d) => d.drug === "nadolol") ?? [];
+
     for (let t = start; t <= end; t += 30 * 60 * 1000) {
       const d = new Date(t);
-      const doseHours = [9, 20];
+      let bestDose: Date | null = null;
       let minHours = Infinity;
-      let lastDose = new Date(d);
 
-      for (let dayOffset = 0; dayOffset <= 2; dayOffset++) {
-        for (const dh of doseHours) {
-          const dose = new Date(d);
-          dose.setDate(dose.getDate() - dayOffset);
-          dose.setHours(dh, 0, 0, 0);
-          if (dose <= d) {
-            const hoursSince = (d.getTime() - dose.getTime()) / (1000 * 60 * 60);
+      if (nadololDoses.length > 0) {
+        for (const dose of nadololDoses) {
+          const doseTime = new Date(dose.takenAt);
+          if (doseTime <= d) {
+            const hoursSince = (d.getTime() - doseTime.getTime()) / (1000 * 60 * 60);
             if (hoursSince < minHours) {
               minHours = hoursSince;
-              lastDose = dose;
+              bestDose = doseTime;
             }
           }
         }
       }
 
-      const drugLevel = decayConcentration(lastDose, nadolol.halfLifeHours, d);
+      if (!bestDose) {
+        const doseHours = nadolol.doseTimes.map((s) => parseInt(s.split(":")[0]));
+        for (let dayOffset = 0; dayOffset <= 3; dayOffset++) {
+          for (const dh of doseHours) {
+            const dose = new Date(d);
+            dose.setDate(dose.getDate() - dayOffset);
+            dose.setHours(dh, 0, 0, 0);
+            if (dose <= d) {
+              const hoursSince = (d.getTime() - dose.getTime()) / (1000 * 60 * 60);
+              if (hoursSince < minHours) {
+                minHours = hoursSince;
+                bestDose = dose;
+              }
+            }
+          }
+        }
+      }
+
+      const drugLevel = bestDose
+        ? decayConcentration(bestDose, nadolol.halfLifeHours, d)
+        : 0;
       const hrvBase = 44;
       const hrvDelta = drugLevel < 30 ? -14 : drugLevel < 50 ? -6 : 0;
       const hrv = hrvBase + hrvDelta + Math.sin(t / 3600000) * 3;
@@ -56,7 +86,6 @@ export function usePKData(windowHours = 48) {
       });
     }
 
-    // Compute trough zones
     const troughZones: { start: number; end: number }[] = [];
     let troughStart: number | null = null;
     for (const p of points) {
@@ -72,5 +101,5 @@ export function usePKData(windowHours = 48) {
     }
 
     return { data: points, nowTime: mountTime, troughZones };
-  }, [mountTime, windowHours]);
+  }, [mountTime, windowHours, meds, doses]);
 }

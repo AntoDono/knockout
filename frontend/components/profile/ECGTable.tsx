@@ -1,11 +1,19 @@
-import { ECG_READINGS } from "@/lib/data/synthetic";
+"use client";
+import { useFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import type { ECGReading } from "@/lib/types";
 
 export function ECGTable() {
+  const { data: readings } = useFetch<ECGReading[]>("/patient/ecg");
+
+  if (!readings) {
+    return <div className="h-48 rounded-2xl bg-muted animate-pulse" />;
+  }
+
   return (
     <div className="rounded-2xl bg-card p-6 shadow-sm overflow-x-auto">
       <h3 className="text-sm font-medium text-muted-foreground uppercase tracking-wide mb-4">
-        ECG History ({ECG_READINGS.length} readings)
+        ECG History ({readings.length} readings)
       </h3>
       <table className="w-full text-sm">
         <thead>
@@ -20,7 +28,7 @@ export function ECGTable() {
           </tr>
         </thead>
         <tbody>
-          {ECG_READINGS.map((ecg) => (
+          {readings.map((ecg) => (
             <tr key={ecg.readingDate} className={cn("border-t border-border/50", ecg.isAnomalous && "bg-red-50")}>
               <td className="py-2.5 pr-4 font-medium">{ecg.readingDate}</td>
               <td className="py-2.5 px-2 text-right">{ecg.hrBpm}</td>

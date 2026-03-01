@@ -147,12 +147,39 @@ export interface SleepRecord {
 }
 
 export interface Episode {
-  id: string;
+  id: number;
   recordedAt: string;
-  heartRate: number;
-  hrv: number;
-  drugLevelPct: number;
   notes: string | null;
+  source: string;
+}
+
+export interface DoseLevel {
+  id: number;
+  amountMg: number;
+  takenAt: string;
+  remainingMg: number;
+  notes: string;
+}
+
+export interface DrugLevel {
+  drug: string;
+  halfLifeH: number;
+  totalDosedMg: number;
+  remainingMg: number;
+  pctRemaining: number;
+  doses: DoseLevel[];
+}
+
+export interface EpisodeContextData {
+  episode: { id: number; recordedAt: string; notes: string | null };
+  contextWindow: { start: string; end: string };
+  hr: { recordedAt: string; hrBpm: number; activity: string }[];
+  hrv: { recordedAt: string; hrvMs: number; measurementType: string }[];
+  sleep: { sleepStart: string; sleepEnd: string; durationMinutes: number; quality: string }[];
+  temperature: { recordedAt: string; tempC: number; deviationC: number }[];
+  weather: { recordedAt: string; tempC: number; humidityPct: number }[];
+  medicationLevels: DrugLevel[];
+  baselines: Baselines;
 }
 
 export interface WeatherReading {
@@ -168,11 +195,39 @@ export interface TemperatureReading {
 }
 
 export interface Baselines {
-  hr: { mean: number; std: number };
-  hrv: { mean: number; std: number };
-  sleep: { meanDurationMin: number; meanQualityScore: number };
-  temperature: { mean: number; std: number };
-  weather: { meanTempC: number; meanHumidityPct: number };
+  hr: { mean: number | null; std: number | null; count?: number; windowDays?: number };
+  hrv: { mean: number | null; std: number | null; count?: number; windowDays?: number };
+  sleep: { meanDurationMin: number | null; meanQualityScore: number | null; stdDurationMin?: number | null; count?: number; windowDays?: number };
+  temperature: { mean: number | null; std: number | null; count?: number; windowDays?: number };
+  weather: { meanTempC: number | null; meanHumidityPct: number | null; stdTempC?: number | null; stdHumidityPct?: number | null; count?: number; windowDays?: number };
+  medication?: DrugLevel[];
+}
+
+export interface AfibData {
+  afibDetected: boolean;
+  confidence: number;
+  meanBpm: number;
+  nSamples: number;
+  cv: number;
+  rmssdMs: number;
+  pnn20: number;
+  sd1: number;
+  sd2: number;
+  sd1Sd2Ratio: number;
+  sampleEntropy: number;
+  lfHfRatio: number;
+  notes: string[];
+}
+
+export interface HeartUpdate {
+  type: "hello" | "heart_update";
+  timestamp: string;
+  latestBpm: number | null;
+  bpmBufferSize: number;
+  afib: AfibData | null;
+  drugLevels: DrugLevel[];
+  simName?: string;
+  simTimeS?: number;
 }
 
 export interface DrugOption {
@@ -190,7 +245,7 @@ export interface DrugLevelSnapshot {
 }
 
 export interface EpisodeInsight {
-  id: string;
+  id: number;
   deviations: {
     hrPct: number;
     hrvPct: number;

@@ -2,15 +2,9 @@
 import { useState } from "react";
 import { FileText, Lock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { fetchBlob } from "@/lib/api";
 import { cn } from "@/lib/utils";
-
-const SECTION_ID_TO_BACKEND: Record<string, string> = {
-  episodes: "episode_library",
-  pk: "pharmacokinetic_analysis",
-  autonomic: "autonomic_trends",
-  triggers: "trigger_analysis",
-  context: "supporting_context",
-};
+import { toast } from "sonner";
 
 const SPECIALISTS = [
   { id: "cardiology", label: "Cardiology", available: true },
@@ -21,11 +15,11 @@ const SPECIALISTS = [
 
 const SECTIONS = [
   { id: "executive", label: "Executive Summary", locked: true },
-  { id: "episodes", label: "Episode Library", locked: false },
-  { id: "pk", label: "Pharmacokinetic Analysis", locked: false },
-  { id: "autonomic", label: "Autonomic Trends", locked: false },
-  { id: "triggers", label: "Trigger Analysis", locked: false },
-  { id: "context", label: "Supporting Context", locked: false },
+  { id: "episode_library", label: "Episode Library", locked: false },
+  { id: "pharmacokinetic_analysis", label: "Pharmacokinetic Analysis", locked: false },
+  { id: "autonomic_trends", label: "Autonomic Trends", locked: false },
+  { id: "trigger_analysis", label: "Trigger Analysis", locked: false },
+  { id: "supporting_context", label: "Supporting Context", locked: false },
 ];
 
 const DATE_RANGES = [
@@ -40,44 +34,35 @@ export function ReportBuilder() {
   const [selectedSections, setSelectedSections] = useState(new Set(SECTIONS.map((s) => s.id)));
   const [generating, setGenerating] = useState(false);
 
-  const handleGenerate = async () => {
-    setGenerating(true);
-    try {
-      const backendSections = Array.from(selectedSections)
-        .map((id) => SECTION_ID_TO_BACKEND[id])
-        .filter(Boolean);
-
-      const params = new URLSearchParams();
-      params.set("type", specialist);
-      if (backendSections.length > 0) {
-        params.set("sections", backendSections.join(","));
-      }
-
-      const res = await fetch(`http://localhost:8080/report?${params}`);
-      if (!res.ok) throw new Error(`Report generation failed (${res.status})`);
-
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `knockout-${specialist}-report.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to generate report");
-    } finally {
-      setGenerating(false);
-    }
-  };
-
   const toggleSection = (id: string) => {
     const section = SECTIONS.find((s) => s.id === id);
     if (section?.locked) return;
     const next = new Set(selectedSections);
     if (next.has(id)) next.delete(id); else next.add(id);
     setSelectedSections(next);
+  };
+
+  const handleGenerate = async () => {
+    setGenerating(true);
+    try {
+      const optionalSections = [...selectedSections].filter((s) => s !== "executive");
+      const query = optionalSections.length > 0
+        ? `?type=${specialist}&sections=${optionalSections.join(",")}`
+        : `?type=${specialist}`;
+
+      const blob = await fetchBlob(`/report${query}`);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `knockout_${specialist}_report.pdf`;
+      a.click();
+      URL.revokeObjectURL(url);
+      toast.success("Report downloaded");
+    } catch {
+      toast.error("Failed to generate report");
+    } finally {
+      setGenerating(false);
+    }
   };
 
   return (
@@ -137,8 +122,11 @@ export function ReportBuilder() {
       </div>
 
       <Button size="lg" className="w-full rounded-xl h-12 text-base" onClick={handleGenerate} disabled={generating}>
-        {generating ? <Loader2 className="h-5 w-5 mr-2 animate-spin" /> : <FileText className="h-5 w-5 mr-2" />}
-        {generating ? "Generating…" : "Generate Report"}
+        {generating ? (
+          <><Loader2 className="h-5 w-5 mr-2 animate-spin" />Generating...</>
+        ) : (
+          <><FileText className="h-5 w-5 mr-2" />Generate Report</>
+        )}
       </Button>
     </div>
   );
