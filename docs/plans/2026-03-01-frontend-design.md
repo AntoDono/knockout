@@ -1,4 +1,4 @@
-# Frontend Design — Guardrail Cardiac Monitoring Dashboard
+# Frontend Design — Knockout Cardiac Monitoring Dashboard
 
 **Date:** 2026-03-01
 **Approach:** Clean Slate Rebuild with orange + white design system
@@ -68,7 +68,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  🛡 Guardrail     Dashboard  Medications  Episodes  Reports  DA │
+│  🛡 Knockout     Dashboard  Medications  Episodes  Reports  DA │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  Sunday, March 1, 2026                                          │

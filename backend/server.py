@@ -1,5 +1,5 @@
 """
-Guardrail TKOS Platform – FastAPI app wiring.
+Knockout TKOS Platform – FastAPI app wiring.
 
 Routes are organized into domain modules:
   sensor.py   – POST /push, GET /stats, WS /ws
@@ -66,7 +66,7 @@ async def lifespan(app: FastAPI):
             pass
 
 
-app = FastAPI(title="Guardrail TKOS Platform", lifespan=lifespan)
+app = FastAPI(title="Knockout TKOS Platform", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     import argparse
     import uvicorn
 
-    parser = argparse.ArgumentParser(description="Guardrail TKOS Platform")
+    parser = argparse.ArgumentParser(description="Knockout TKOS Platform")
     parser.add_argument(
         "--simulate", metavar="FILE",
         help="Run a simulation scenario (name or path to .yaml/.json file)",

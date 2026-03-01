@@ -51,7 +51,7 @@ def _build_metadata(patient: dict, period_start: str, period_end: str) -> dict:
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "period_start": period_start,
         "period_end": period_end,
-        "guardrail_version": "0.1.0",
+        "knockout_version": "0.1.0",
     }
 
 

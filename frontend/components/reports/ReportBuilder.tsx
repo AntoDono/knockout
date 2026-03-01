@@ -54,7 +54,7 @@ export function ReportBuilder() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `guardrail_${specialist}_report.pdf`;
+      a.download = `knockout_${specialist}_report.pdf`;
       a.click();
       URL.revokeObjectURL(url);
       toast.success("Report downloaded");

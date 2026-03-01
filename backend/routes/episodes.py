@@ -70,6 +70,15 @@ def list_episodes(
     ]
 
 
+@router.delete("/episodes/{episode_id}", status_code=204)
+def delete_episode(episode_id: int):
+    try:
+        episode = Episode.get_by_id(episode_id)
+    except Episode.DoesNotExist:
+        raise HTTPException(status_code=404, detail=f"episode {episode_id} not found")
+    episode.delete_instance()
+
+
 @router.get("/episodes/{episode_id}/context")
 def get_episode_context(episode_id: int):
     try:

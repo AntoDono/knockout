@@ -2,7 +2,7 @@
 
 ## Overview
 
-Layer 1 is the clinical foundation of Guardrail. It stores everything already known about the patient before a single new data point is collected. Every downstream layer reads from it: the passive data engine compares against personal thresholds, the PK model reads medication details, the one-tap capture snapshots medication coverage, and the physician report pulls the full clinical picture.
+Layer 1 is the clinical foundation of Knockout. It stores everything already known about the patient before a single new data point is collected. Every downstream layer reads from it: the passive data engine compares against personal thresholds, the PK model reads medication details, the one-tap capture snapshots medication coverage, and the physician report pulls the full clinical picture.
 
 **Storage:** Single SQLite database file. Clinical foundation data is seeded from a manually parsed `seed.json` on first run. Runtime data (watch streams, tapped events, computed baselines) goes into the same database.
 

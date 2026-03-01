@@ -1,5 +1,5 @@
 """
-Simulation engine for the Guardrail TKOS Platform.
+Simulation engine for the Knockout TKOS Platform.
 
 Loads YAML or JSON scenario files and replays cardiac and drug events against
 the live server state — BPM readings feed the sensor buffer (triggering AFib

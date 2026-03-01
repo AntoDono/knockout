@@ -3,6 +3,7 @@ import { PatientInfo } from "@/components/profile/PatientInfo";
 import { ICDDetails } from "@/components/profile/ICDDetails";
 import { ECGTable } from "@/components/profile/ECGTable";
 import { TriggersCard } from "@/components/profile/TriggersCard";
+import { EmergencyContacts } from "@/components/profile/EmergencyContacts";
 import { useFetch } from "@/lib/api";
 import type { StaticThreshold } from "@/lib/types";
 
@@ -23,6 +24,8 @@ export default function ProfilePage() {
           <TriggersCard />
         </div>
       </div>
+
+      <EmergencyContacts />
 
       <ECGTable />
 

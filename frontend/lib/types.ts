@@ -43,7 +43,7 @@ export interface Medication {
   brandName: string | null;
   drugClass: string;
   isCardiac: boolean;
-  doseMg: number;
+  doseMg: number | null;
   doseUnit: string;
   frequency: string;
   doseTimes: string[];
@@ -235,4 +235,47 @@ export interface DrugOption {
   name: string;
   tHalfHours: number;
   qtRisk: QtRisk;
+  description: string;
+  category: "first-line" | "alternative" | "reserve" | "qt-risk";
+}
+
+export interface DrugLevelSnapshot {
+  drugName: string;
+  brandName: string | null;
+  levelPct: number | null;
+  status: "therapeutic" | "declining" | "trough" | "taken" | "not_taken";
+  halfLifeHours: number | null;
+}
+
+export interface EpisodeInsight {
+  id: number;
+  deviations: {
+    hrPct: number;
+    hrvPct: number;
+    drugLevels: DrugLevelSnapshot[];
+  };
+  triggerMatches: {
+    triggerType: string;
+    source: string;
+  }[];
+  narrative: string;
+  contextNarrative: string;
+}
+
+export interface ContributingFactor {
+  label: string;
+  correlationPct: number;
+  color: "red" | "amber" | "green";
+}
+
+export interface EpisodeSummary {
+  totalEpisodes: number;
+  periodDays: number;
+  frequencyPerDay: number;
+  baselineFrequencyPerDay: number;
+  troughCorrelationPct: number;
+  sleepCorrelationPct: number;
+  icdGapPct: number;
+  contributingFactors: ContributingFactor[];
+  narrative: string;
 }

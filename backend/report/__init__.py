@@ -1,5 +1,5 @@
 """
-Guardrail report generation module.
+Knockout report generation module.
 
 Self-contained — does not import from database.py or server.py.
 When the real DB layer is ready, swap sample_data for real queries.

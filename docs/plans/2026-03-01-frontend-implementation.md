@@ -219,7 +219,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Guardrail · TKOS Cardiac Monitoring",
+  title: "Knockout · TKOS Cardiac Monitoring",
   description: "Cardiac monitoring platform for Triadin Knockout Syndrome",
 };
 
@@ -247,7 +247,7 @@ Replace `frontend/app/page.tsx`:
 export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-background p-8">
-      <h1 className="text-3xl font-bold text-foreground">Guardrail</h1>
+      <h1 className="text-3xl font-bold text-foreground">Knockout</h1>
       <p className="mt-2 text-muted-foreground">Dashboard coming soon</p>
     </div>
   );
@@ -260,7 +260,7 @@ export default function DashboardPage() {
 npm run dev
 ```
 
-Visit http://localhost:3000 — should show "Guardrail" in dark text on warm-white background.
+Visit http://localhost:3000 — should show "Knockout" in dark text on warm-white background.
 
 **Step 5: Commit**
 
@@ -916,7 +916,7 @@ export function TopNav() {
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-8 px-6">
         <Link href="/" className="flex items-center gap-2">
           <Shield className="h-5 w-5 text-primary" />
-          <span className="text-lg font-bold text-foreground">Guardrail</span>
+          <span className="text-lg font-bold text-foreground">Knockout</span>
         </Link>
 
         <nav className="hidden sm:flex items-center gap-1">
@@ -1047,7 +1047,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Guardrail · TKOS Cardiac Monitoring",
+  title: "Knockout · TKOS Cardiac Monitoring",
   description: "Cardiac monitoring platform for Triadin Knockout Syndrome",
 };
 
@@ -2806,5 +2806,5 @@ Verify:
 
 ```bash
 git add -A
-git commit -m "feat: complete Guardrail frontend with 5-page orange+white dashboard"
+git commit -m "feat: complete Knockout frontend with 5-page orange+white dashboard"
 ```

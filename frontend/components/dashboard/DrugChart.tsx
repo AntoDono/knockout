@@ -1,5 +1,5 @@
 "use client";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   LineChart, Line, XAxis, YAxis,
   CartesianGrid, Tooltip, Legend, ReferenceLine, ReferenceArea, ResponsiveContainer,
@@ -82,12 +82,12 @@ function buildProjection(
 }
 
 export function DrugChart({ drugLevelHistory, drugLevels, connected }: DrugChartProps) {
+  const [now] = useState(() => Date.now());
   const { chartData, drugNames, nowTime, critWindow } = useMemo(() => {
     if (drugLevelHistory.length === 0)
-      return { chartData: [], drugNames: [] as string[], nowTime: Date.now(), critWindow: null };
+      return { chartData: [], drugNames: [] as string[], nowTime: now, critWindow: null };
 
     const names = [...new Set(drugLevelHistory.map((d) => d.drug))];
-    const now = Date.now();
 
     const byTime = new Map<number, Record<string, number>>();
     for (const pt of drugLevelHistory) {
@@ -111,7 +111,7 @@ export function DrugChart({ drugLevelHistory, drugLevels, connected }: DrugChart
       : null;
 
     return { chartData: merged, drugNames: allNames, nowTime: now, critWindow: cw };
-  }, [drugLevelHistory, drugLevels]);
+  }, [drugLevelHistory, drugLevels, now]);
 
   const solidNames = drugNames.filter((n) => !n.endsWith("(proj)"));
   const projNames = drugNames.filter((n) => n.endsWith("(proj)"));
