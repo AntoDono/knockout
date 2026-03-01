@@ -113,22 +113,24 @@ No typing. No form. No description needed. The context is captured automatically
 
 ---
 
-### Layer 5: Bayesian Learning Model
+### Layer 5: Pattern Learning (Future Vision)
 
-**What it does:** Learns her personal pre-episode pattern over time by analyzing what the passive streams looked like before each tap.
+*This layer is part of the long-term vision. We describe the architecture at the hackathon but do not implement it.*
 
-**Why it matters:** TKOS triggers are multi-factorial and patient-specific. For one patient, it might be heat + medication trough. For another, sleep debt + exertion. No clinician, seeing the patient for 15 minutes every 3 months, can identify these compound patterns. The model watches continuously and remembers everything.
+**What it would do:** Learn her personal pre-episode pattern over time by analyzing what the passive streams looked like before each tap.
 
-**How it learns:**
+**Why it matters:** TKOS triggers are multi-factorial and patient-specific. For one patient, it might be heat + medication trough. For another, sleep debt + exertion. No clinician, seeing the patient for 15 minutes every 3 months, can identify these compound patterns. A learning model watches continuously and remembers everything.
+
+**How it would work:**
 - Starts with priors from the TKOS registry and CPVT literature — what triggers events in these conditions generally
 - Each tap is a labeled event: "something happened here"
 - The model examines what all six streams looked like in the hours before each tap
 - Early on, confidence is low and the model is honest about uncertainty
 - After approximately 20-30 taps, it begins identifying which stream combinations most reliably precede her episodes
 
-**What it does with that knowledge:** When the passive streams converge on her personal pre-episode pattern, a single calm, low-urgency notification surfaces. Not an alarm. Not red text. Not "DANGER." Just quiet awareness.
+**What it would do with that knowledge:** When the passive streams converge on her personal pre-episode pattern, a single calm, low-urgency notification surfaces. Not an alarm. Not red text. Not "DANGER." Just quiet awareness.
 
-**Why calm matters:** For TKOS, stress and adrenaline literally trigger arrhythmias. A frightening alert could cause the exact cardiac event it's warning about. The notification design is deliberately clinical, not emotional.
+**Why calm matters:** For TKOS, stress and adrenaline literally trigger arrhythmias. A frightening alert could cause the exact cardiac event it's warning about. Any future notification design must be deliberately clinical, not emotional.
 
 ---
 
@@ -151,17 +153,25 @@ The report is formatted for a 5-minute clinical review. Information is prioritiz
 
 ## What We Build vs. What We Demo
 
-| Build for the hackathon | Demo conceptually |
-|---|---|
-| Data ingestion pipeline for health data | Full Bayesian learning model (show the architecture, explain the priors, use simulated data to demonstrate) |
-| Pharmacokinetic curve visualization for nadolol and flecainide | NLP extraction from clinical notes (show sample extractions from example notes) |
-| One-tap capture with automatic context snapshot | |
-| Physician PDF report generation | |
-| Simulated patient data showing trough-episode correlation | |
+### What we build
 
-The pharmacokinetic overlay is the differentiator — no existing app models medication blood levels against biometric data for channelopathy patients. That's the thing that makes a cardiologist lean forward.
+- **One-tap capture** with automatic context snapshot — the core interaction
+- **Physician PDF report generation** — structured clinical output from captured data
+- **Simulated patient data** showing trough-episode correlation — demonstrates the PK overlay concept with realistic data
+- **Apple Watch data ingestion** — pulling real health data from our teammate's watch for the demo
+- **In-app data generation buttons** — since we can't wait for a real arrhythmia event during a hackathon, the app includes buttons that simulate contextual data entries (heart rate spike, missed dose, poor sleep, etc.) to populate the system and demonstrate how it works over time
 
-The Bayesian model is the research vision — we show the architecture, explain the priors, and demonstrate with simulated data what it would produce after 30 taps. It doesn't need to be fully implemented for the hackathon.
+### What we demo conceptually
+
+- **Bayesian learning model** — we describe the architecture and priors but don't implement the full model
+- **NLP extraction from clinical notes** — show sample extractions from example doctor's notes
+- **Pharmacokinetic curve visualization** — the medication blood-level model is the vision differentiator; we show the concept and its clinical value
+
+### The hackathon reality
+
+We have a teammate with TKOS. We can pull her real Apple Watch data for the demo. But we cannot wait for a real cardiac event to happen during the hackathon — and we wouldn't want to. Instead, the app includes manual data generation buttons that let us simulate the kind of events and context the system would capture in real use. This lets us demonstrate the full data flow — from capture through context snapshot to physician report — without depending on a live medical event.
+
+The pharmacokinetic overlay is the differentiator — no existing app models medication blood levels against biometric data for channelopathy patients. That's the thing that makes a cardiologist lean forward. For the hackathon, we demonstrate this concept with simulated data and explain how it would work with real dose-logging over time.
 
 ---
 
