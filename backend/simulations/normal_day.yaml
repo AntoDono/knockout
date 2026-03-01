@@ -1,0 +1,111 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Scenario: Normal Day – Medication Adherent
+# ──────────────────────────────────────────────────────────────────────────────
+# What this demonstrates
+# ─────────────────────
+# An uneventful 24-hour period compressed to ~13 minutes (110× speed).
+# The patient takes their morning and evening nadolol + daily flecainide
+# on schedule.  Heart rate follows a realistic circadian pattern:
+#   – slightly elevated on wake-up
+#   – controlled rate through the day
+#   – bradycardic dip overnight
+#   – morning rise before the next alarm
+#
+# Drug levels stay comfortably in range with no rhythm disturbances.
+# ──────────────────────────────────────────────────────────────────────────────
+
+name:        "Normal Day – Medication Adherent"
+description: >
+  24-hour uneventful baseline. Patient takes all doses on schedule.
+  Demonstrates healthy PK curve and stable sinus rhythm across the circadian
+  cycle. Good reference trace for physician reports.
+speed:    110
+duration: "24h"
+
+drugs:
+  - name: nadolol
+    doses:
+      # Previous evening (already in past at sim start = midnight)
+      - amount_mg: 40
+        taken_at: "-12h"
+      # Morning dose at 08:00
+      - amount_mg: 40
+        taken_at: "+8h"
+      # Evening dose at 20:00
+      - amount_mg: 40
+        taken_at: "+20h"
+
+  - name: flecainide
+    doses:
+      # Yesterday's dose
+      - amount_mg: 25
+        taken_at: "-24h"
+      # Morning dose at 08:00
+      - amount_mg: 25
+        taken_at: "+8h"
+
+heart:
+  baseline_bpm: 60
+  noise_std:    2.5
+  segments:
+    # Late night / early morning – deep sleep bradycardia
+    - start:   "0h"
+      end:     "2h"
+      pattern: bradycardia
+      bpm:     48
+
+    # REM sleep – slight rate increase
+    - start:   "2h"
+      end:     "5h"
+      pattern: normal
+      bpm:     54
+
+    # Pre-wake autonomic activation
+    - start:   "5h"
+      end:     "7h"
+      pattern: normal
+      bpm:     62
+
+    # Wake-up, mild orthostatic response
+    - start:   "7h"
+      end:     "8h"
+      pattern: normal
+      bpm:     72
+      bpm_std: 5.0
+
+    # Morning dose on board – rate comes down into controlled zone
+    - start:   "8h"
+      end:     "12h"
+      pattern: normal
+      bpm:     65
+
+    # Post-lunch mild vagal
+    - start:   "12h"
+      end:     "14h"
+      pattern: normal
+      bpm:     60
+
+    # Afternoon – mild activity
+    - start:   "14h"
+      end:     "17h"
+      pattern: normal
+      bpm:     70
+      bpm_std: 4.0
+
+    # Pre-dinner, levels starting trough
+    - start:   "17h"
+      end:     "20h"
+      pattern: normal
+      bpm:     68
+
+    # Evening dose on board
+    - start:   "20h"
+      end:     "22h"
+      pattern: normal
+      bpm:     62
+
+    # Wind-down to sleep
+    - start:   "22h"
+      end:     "24h"
+      pattern: bradycardia
+      bpm:     52

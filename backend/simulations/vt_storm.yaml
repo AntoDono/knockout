@@ -1,0 +1,100 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Scenario: Ventricular Tachycardia Storm
+# ──────────────────────────────────────────────────────────────────────────────
+# What this demonstrates
+# ─────────────────────
+# A missed dose combined with an exertion trigger precipitates a VT storm.
+# The first two episodes fall below the ICD's VT detection cutoff (160 bpm)
+# and are invisible to the device.  The third episode breaks into the VF zone
+# (≥200 bpm) – but Guardrail has already been flagging the subclinical runs.
+#
+# This is the core clinical value proposition: catching the escalating
+# pattern before the ICD is forced to intervene.
+# ──────────────────────────────────────────────────────────────────────────────
+
+name:        "Ventricular Tachycardia Storm"
+description: >
+  Missed nadolol dose + exertion trigger produces three VT runs.
+  First two are subclinical (below ICD detection). Third breaches VF zone.
+  Illustrates Guardrail's early-warning capability.
+speed:    30
+duration: "45m"
+
+drugs:
+  - name: nadolol
+    doses:
+      # Last dose was 16 hours ago (missed morning dose)
+      - amount_mg: 40
+        taken_at:  "-16h"
+
+  - name: flecainide
+    doses:
+      # Yesterday's morning dose – long ago, mostly cleared
+      - amount_mg: 25
+        taken_at: "-28h"
+
+heart:
+  baseline_bpm: 72
+  noise_std:    3.0
+  segments:
+    # Baseline – levels very low, mildly elevated resting rate
+    - start:   "0m"
+      end:     "8m"
+      pattern: normal
+      bpm:     76
+
+    # Exertion onset (patient exercises)
+    - start:   "8m"
+      end:     "12m"
+      pattern: tachycardia
+      bpm:     130
+      bpm_std: 8.0
+
+    # First VT run – 140 bpm, below ICD threshold (invisible)
+    - start:    "12m"
+      end:      "16m"
+      pattern:  vt
+      bpm:      142
+      bpm_std:  5.0
+
+    # Brief termination – patient pauses exertion
+    - start:   "16m"
+      end:     "19m"
+      pattern: normal
+      bpm:     88
+      bpm_std: 6.0
+
+    # Second VT run – escalating (155 bpm, still below 160 cutoff)
+    - start:    "19m"
+      end:      "24m"
+      pattern:  vt
+      bpm:      155
+      bpm_std:  6.0
+
+    # Second spontaneous termination
+    - start:   "24m"
+      end:     "28m"
+      pattern: tachycardia
+      bpm:     110
+      bpm_std: 8.0
+
+    # Third run – crosses into VF zone, ICD will shock
+    - start:    "28m"
+      end:      "34m"
+      pattern:  vt
+      bpm:      205
+      bpm_std:  10.0
+
+    # Post-shock – ICD fires, patient in shock/recovery
+    - start:   "34m"
+      end:     "38m"
+      pattern: bradycardia
+      bpm:     45
+      bpm_std: 5.0
+
+    # Slow recovery – paced rhythm
+    - start:   "38m"
+      end:     "45m"
+      pattern: normal
+      bpm:     62
+      bpm_std: 3.0

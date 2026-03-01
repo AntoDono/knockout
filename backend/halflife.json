@@ -6,5 +6,21 @@
   "nadalol": {
     "reasoning": "The typical half-life of nadolol is 20-24 hours according to DrugBank and FDA label. The median is 22 hours. So the half-life is 79,200 seconds.",
     "halflife": 79200
+  },
+  "flecainide": {
+    "reasoning": "The typical half-life of flecainide in patients is about 20 hours (range often cited as 12-27 hours). Median of range is 19.5, but average reported as 20 hours. 20 hours * 3600 seconds/hour = 72,000 seconds.",
+    "halflife": 72000
+  },
+  "metoprolol": {
+    "reasoning": "The typical half-life of metoprolol is 3 to 7 hours according to multiple sources including NCBI, Drugs.com, and Wikipedia. The median of this range is 5 hours. 5 hours = 5 * 3600 = 18,000 seconds.",
+    "halflife": 18000
+  },
+  "nadolol": {
+    "reasoning": "The typical half-life of nadolol is 20-24 hours according to multiple reliable sources including FDA label, DrugBank, and NCBI StatPearls. The median of this range is 22 hours. 22 hours * 60 minutes/hour * 60 seconds/minute = 79,200 seconds.",
+    "halflife": 79200
+  },
+  "flecainide": {
+    "reasoning": "The mean elimination half-life of flecainide is consistently reported as 1.4 hours across reliable sources such as DrugBank, the Pfizer prescribing information, and Wikipedia. Although its active metabolites have longer half-lives (13.8-16.5 hours), the half-life of the drug itself is 1.4 hours. 1.4 hours * 3600 seconds/hour = 5040 seconds.",
+    "halflife": 5040
   }
 }

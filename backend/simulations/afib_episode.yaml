@@ -1,0 +1,82 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Scenario: AFib Episode During Nadolol Trough
+# ──────────────────────────────────────────────────────────────────────────────
+# What this demonstrates
+# ─────────────────────
+# A TKOS patient on nadolol 40mg BID (morning + evening) is approaching
+# the end of the dosing interval.  Plasma levels have decayed into sub-
+# therapeutic range.  An AFib episode emerges in the ICD gap (70–160 bpm) –
+# completely invisible to the device.  Guardrail catches it via HRV analysis.
+#
+# The evening dose fires at t=45m, plasma levels recover, and the patient
+# returns to normal sinus rhythm.
+#
+# Speed 120× means a 60-minute scenario completes in ~30 seconds of wall time.
+# ──────────────────────────────────────────────────────────────────────────────
+
+name:        "AFib Episode – Nadolol Trough"
+description: >
+  Subclinical AFib in the ICD gap triggered when nadolol plasma levels
+  fall below therapeutic range. Resolves after the evening dose is taken.
+speed:    120
+duration: "60m"
+
+drugs:
+  - name: nadolol
+    doses:
+      # Morning dose – already in the past, levels are wearing off
+      - amount_mg: 40
+        taken_at:  "-8h"
+      # Evening dose – patient takes it at the 45-minute mark of the sim
+      - amount_mg: 40
+        taken_at:  "+45m"
+
+  - name: flecainide
+    doses:
+      # Morning dose – once daily
+      - amount_mg: 25
+        taken_at: "-6h"
+
+heart:
+  baseline_bpm: 68
+  noise_std:    2.0
+  segments:
+    # Normal sinus – nadolol still marginally effective
+    - start:   "0m"
+      end:     "15m"
+      pattern: normal
+      bpm:     68
+
+    # Early irregularity as drug levels fall further
+    - start:   "15m"
+      end:     "22m"
+      pattern: normal
+      bpm:     74
+      bpm_std: 6.0
+
+    # AFib onset – rate enters ICD gap, device is blind
+    - start:    "22m"
+      end:      "44m"
+      pattern:  afib
+      bpm_mean: 92
+      bpm_std:  24
+
+    # Brief tachycardia as episode is breaking
+    - start:   "44m"
+      end:     "48m"
+      pattern: tachycardia
+      bpm:     118
+      bpm_std: 8.0
+
+    # Evening dose taken – conversion back to NSR
+    - start:   "48m"
+      end:     "55m"
+      pattern: normal
+      bpm:     76
+      bpm_std: 4.0
+
+    # Settled sinus rhythm with drug on board
+    - start:   "55m"
+      end:     "60m"
+      pattern: normal
+      bpm:     64
