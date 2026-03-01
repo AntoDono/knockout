@@ -33,8 +33,9 @@ from peewee import (
     ForeignKeyField,
 )
 
-_DB_PATH    = Path(__file__).parent / "knockout.db"
-_CACHE_FILE = Path(__file__).parent / "halflife.json"
+_DB_PATH         = Path(__file__).parent / "knockout.db"
+_CACHE_FILE      = Path(__file__).parent / "halflife.json"
+_CLINICAL_SEED   = Path(__file__).parent / "seed" / "clinical.json"
 
 db = SqliteDatabase(str(_DB_PATH), pragmas={"foreign_keys": 1})
 
@@ -334,6 +335,7 @@ def init_db() -> None:
     db.connect(reuse_if_open=True)
     db.create_tables([Drug, Dose] + _LAYER1_MODELS, safe=True)
     _seed_from_cache()
+    _seed_clinical()
 
 
 def _seed_from_cache() -> None:
@@ -350,9 +352,120 @@ def _seed_from_cache() -> None:
         )
 
 
+def _seed_clinical() -> None:
+    """Load clinical foundation data from seed file (idempotent)."""
+    if not _CLINICAL_SEED.exists():
+        return
+    # Skip if patient already seeded
+    if Patient.select().count() > 0:
+        return
+
+    data = json.loads(_CLINICAL_SEED.read_text())
+    p = data["patient"]
+
+    patient = Patient.create(
+        first_name=p["first_name"],
+        last_name=p["last_name"],
+        date_of_birth=p["date_of_birth"],
+        sex=p["sex"],
+        height_cm=p.get("height_cm"),
+        weight_kg=p.get("weight_kg"),
+        bmi=p.get("bmi"),
+        primary_diagnosis=p["primary_diagnosis"],
+        gene_variant=p.get("gene_variant"),
+        diagnosis_date=p.get("diagnosis_date"),
+        has_myopathy=p.get("has_myopathy", False),
+        has_sick_sinus=p.get("has_sick_sinus", False),
+        cardiac_arrest_history=p.get("cardiac_arrest_history"),
+        sympathetic_denervation=p.get("sympathetic_denervation", False),
+    )
+
+    for d in data.get("diagnoses", []):
+        PatientDiagnosis.create(patient=patient, **d)
+
+    for a in data.get("allergies", []):
+        PatientAllergy.create(patient=patient, **a)
+
+    for t in data.get("triggers", []):
+        KnownTrigger.create(patient=patient, **t)
+
+    for m in data.get("medications", []):
+        Medication.create(patient=patient, **m)
+
+    for device_data in data.get("icd_devices", []):
+        zones = device_data.pop("zones", [])
+        episodes = device_data.pop("episodes", [])
+        device = ICDDevice.create(patient=patient, **device_data)
+        for z in zones:
+            ICDZone.create(device=device, **z)
+        for e in episodes:
+            ICDEpisode.create(device=device, **e)
+
+    for s in data.get("shock_history", []):
+        ICDShockHistory.create(patient=patient, **s)
+
+    for e in data.get("ecg_readings", []):
+        ECGReading.create(patient=patient, **e)
+
+    for t in data.get("static_thresholds", []):
+        StaticThreshold.create(patient=patient, **t)
+
+    for n in data.get("clinical_notes", []):
+        ClinicalNote.create(patient=patient, **n)
+
+    for s in data.get("surgical_history", []):
+        SurgicalHistory.create(patient=patient, **s)
+
+    print(f"[SEED] Loaded clinical data for {patient.first_name} {patient.last_name}")
+
+
 # ---------------------------------------------------------------------------
 # Queries
 # ---------------------------------------------------------------------------
+
+def get_report_data(patient_id: int = 1) -> dict:
+    """Build the report data dict from the database, replacing sample_data.py."""
+    p = Patient.get_by_id(patient_id)
+    device = ICDDevice.get(ICDDevice.patient == p)
+    threshold = StaticThreshold.get(
+        StaticThreshold.patient == p,
+        StaticThreshold.is_current == True,
+    )
+    cardiac_meds = Medication.select().where(
+        Medication.patient == p,
+        Medication.is_cardiac == True,
+    )
+
+    # Compute age from DOB
+    today = datetime.now(timezone.utc).date()
+    dob = datetime.strptime(p.date_of_birth, "%Y-%m-%d").date()
+    age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+
+    return {
+        "patient": {
+            "patient_id": f"TKOS-{p.id:03d}",
+            "patient_name": p.first_name,
+            "age": age,
+            "diagnosis": p.primary_diagnosis,
+            "icd": True,
+            "hrv_baseline_ms": None,  # populated by Layer 2 dynamic baselines
+            "resting_hr_baseline": threshold.resting_hr_bpm,
+        },
+        "medications": [
+            {
+                "name": m.drug_name,
+                "dose_mg": m.dose_mg,
+                "half_life_hours": m.half_life_hours,
+                "schedule": f"{m.frequency}, {m.dose_times}",
+            }
+            for m in cardiac_meds
+        ],
+        "icd_gap": {
+            "lower_bpm": threshold.icd_gap_lower_bpm,
+            "upper_bpm": threshold.icd_gap_upper_bpm,
+        },
+    }
+
 
 def get_current_levels(now: datetime | None = None) -> list[dict]:
     """
