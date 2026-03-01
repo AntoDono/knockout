@@ -23,7 +23,8 @@ class HalfLife(BaseModel):
     halflife: int = Field(description="Drug half-life in seconds")
 
 
-_client = Client(api_key=os.environ["XAI_API_KEY"])
+_api_key = os.environ.get("XAI_API_KEY")
+_client = Client(api_key=_api_key) if _api_key else None
 
 _SYSTEM = "\n".join([
     "Given a drug, do web search to find its half live in seconds and return it in json. ",
@@ -54,6 +55,9 @@ def get_halflife(drug: str) -> HalfLife:
     cache = _load_cache()
     if key in cache:
         return HalfLife(**cache[key])
+
+    if _client is None:
+        raise RuntimeError("XAI_API_KEY not set — cannot look up half-life. Provide half_life_s directly.")
 
     chat = _client.chat.create(
         model="grok-4-1-fast-reasoning",
