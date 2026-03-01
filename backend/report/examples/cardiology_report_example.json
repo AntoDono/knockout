@@ -1,0 +1,692 @@
+{
+  "metadata": {
+    "report_type": "cardiology",
+    "patient_id": "TKOS-001",
+    "patient_name": "Dishita",
+    "generated_at": "2026-03-01T03:59:20.856603+00:00",
+    "period_start": "2025-11-30T14:00:00+00:00",
+    "period_end": "2026-02-28T14:00:00+00:00",
+    "guardrail_version": "0.1.0"
+  },
+  "executive_summary": {
+    "episode_count": 11,
+    "previous_period_episode_count": null,
+    "trajectory": "stable",
+    "icd_shocks": 0,
+    "medication_adherence_pct": 96.7,
+    "missed_doses": 3,
+    "hrv_baseline_trend": "stable",
+    "flags": [
+      "90.9% of episodes occurred during nadolol trough windows",
+      "Atrial fibrillation pattern detected in 2 episode(s)",
+      "Poor sleep preceded 9 of 11 episodes (82%)"
+    ]
+  },
+  "episode_library": [
+    {
+      "id": "ep-001",
+      "timestamp": "2025-12-08T17:12:00+00:00",
+      "day_of_week": "Saturday",
+      "medication_coverage": {
+        "nadolol": {
+          "pct_remaining": 42.0,
+          "hours_since_dose": 19.2,
+          "in_trough": true
+        },
+        "flecainide": {
+          "pct_remaining": 58.0,
+          "hours_since_dose": 7.2,
+          "in_trough": false
+        }
+      },
+      "hrv_context": {
+        "at_event_ms": 24.0,
+        "baseline_ms": 35.0,
+        "deviation_pct": -31.4
+      },
+      "heart_rate": {
+        "at_event_bpm": 108.0,
+        "baseline_bpm": 78.0
+      },
+      "afib_result": {
+        "detected": false,
+        "confidence": 0.18
+      },
+      "sleep_prior_night": {
+        "duration_hours": 5.1,
+        "baseline_hours": 7.2,
+        "below_baseline": true
+      },
+      "environment": {
+        "temperature_f": 72.0,
+        "humidity_pct": 45.0
+      },
+      "wrist_temperature": {
+        "value_f": 98.4,
+        "elevated": false
+      }
+    },
+    {
+      "id": "ep-002",
+      "timestamp": "2025-12-16T04:45:00+00:00",
+      "day_of_week": "Saturday",
+      "medication_coverage": {
+        "nadolol": {
+          "pct_remaining": 38.0,
+          "hours_since_dose": 20.8,
+          "in_trough": true
+        },
+        "flecainide": {
+          "pct_remaining": 41.0,
+          "hours_since_dose": 8.8,
+          "in_trough": true
+        }
+      },
+      "hrv_context": {
+        "at_event_ms": 19.0,
+        "baseline_ms": 35.0,
+        "deviation_pct": -45.7
+      },
+      "heart_rate": {
+        "at_event_bpm": 115.0,
+        "baseline_bpm": 78.0
+      },
+      "afib_result": {
+        "detected": false,
+        "confidence": 0.31
+      },
+      "sleep_prior_night": {
+        "duration_hours": 4.5,
+        "baseline_hours": 7.2,
+        "below_baseline": true
+      },
+      "environment": {
+        "temperature_f": 88.0,
+        "humidity_pct": 72.0
+      },
+      "wrist_temperature": {
+        "value_f": 98.8,
+        "elevated": false
+      }
+    },
+    {
+      "id": "ep-003",
+      "timestamp": "2025-12-22T20:30:00+00:00",
+      "day_of_week": "Friday",
+      "medication_coverage": {
+        "nadolol": {
+          "pct_remaining": 51.0,
+          "hours_since_dose": 16.5,
+          "in_trough": true
+        },
+        "flecainide": {
+          "pct_remaining": 63.0,
+          "hours_since_dose": 6.5,
+          "in_trough": false
+        }
+      },
+      "hrv_context": {
+        "at_event_ms": 26.0,
+        "baseline_ms": 35.0,
+        "deviation_pct": -25.7
+      },
+      "heart_rate": {
+        "at_event_bpm": 102.0,
+        "baseline_bpm": 78.0
+      },
+      "afib_result": {
+        "detected": false,
+        "confidence": 0.12
+      },
+      "sleep_prior_night": {
+        "duration_hours": 7.0,
+        "baseline_hours": 7.2,
+        "below_baseline": false
+      },
+      "environment": {
+        "temperature_f": 91.0,
+        "humidity_pct": 78.0
+      },
+      "wrist_temperature": {
+        "value_f": 98.6,
+        "elevated": false
+      }
+    },
+    {
+      "id": "ep-004",
+      "timestamp": "2026-01-01T07:20:00+00:00",
+      "day_of_week": "Sunday",
+      "medication_coverage": {
+        "nadolol": {
+          "pct_remaining": 35.0,
+          "hours_since_dose": 21.3,
+          "in_trough": true
+        },
+        "flecainide": {
+          "pct_remaining": 38.0,
+          "hours_since_dose": 9.3,
+          "in_trough": true
+        }
+      },
+      "hrv_context": {
+        "at_event_ms": 17.0,
+        "baseline_ms": 35.0,
+        "deviation_pct": -51.4
+      },
+      "heart_rate": {
+        "at_event_bpm": 122.0,
+        "baseline_bpm": 78.0
+      },
+      "afib_result": {
+        "detected": true,
+        "confidence": 0.58
+      },
+      "sleep_prior_night": {
+        "duration_hours": 4.0,
+        "baseline_hours": 7.2,
+        "below_baseline": true
+      },
+      "environment": {
+        "temperature_f": 94.0,
+        "humidity_pct": 82.0
+      },
+      "wrist_temperature": {
+        "value_f": 99.2,
+        "elevated": true
+      }
+    },
+    {
+      "id": "ep-005",
+      "timestamp": "2026-01-07T16:10:00+00:00",
+      "day_of_week": "Wednesday",
+      "medication_coverage": {
+        "nadolol": {
+          "pct_remaining": 48.0,
+          "hours_since_dose": 18.2,
+          "in_trough": true
+        },
+        "flecainide": {
+          "pct_remaining": 55.0,
+          "hours_since_dose": 6.2,
+          "in_trough": false
+        }
+      },
+      "hrv_context": {
+        "at_event_ms": 29.0,
+        "baseline_ms": 35.0,
+        "deviation_pct": -17.1
+      },
+      "heart_rate": {
+        "at_event_bpm": 98.0,
+        "baseline_bpm": 78.0
+      },
+      "afib_result": {
+        "detected": false,
+        "confidence": 0.22
+      },
+      "sleep_prior_night": {
+        "duration_hours": 6.5,
+        "baseline_hours": 7.2,
+        "below_baseline": true
+      },
+      "environment": {
+        "temperature_f": 85.0,
+        "humidity_pct": 60.0
+      },
+      "wrist_temperature": {
+        "value_f": 98.5,
+        "elevated": false
+      }
+    },
+    {
+      "id": "ep-006",
+      "timestamp": "2026-01-15T01:55:00+00:00",
+      "day_of_week": "Wednesday",
+      "medication_coverage": {
+        "nadolol": {
+          "pct_remaining": 44.0,
+          "hours_since_dose": 19.9,
+          "in_trough": true
+        },
+        "flecainide": {
+          "pct_remaining": 47.0,
+          "hours_since_dose": 7.9,
+          "in_trough": true
+        }
+      },
+      "hrv_context": {
+        "at_event_ms": 21.0,
+        "baseline_ms": 35.0,
+        "deviation_pct": -40.0
+      },
+      "heart_rate": {
+        "at_event_bpm": 112.0,
+        "baseline_bpm": 78.0
+      },
+      "afib_result": {
+        "detected": false,
+        "confidence": 0.35
+      },
+      "sleep_prior_night": {
+        "duration_hours": 5.5,
+        "baseline_hours": 7.2,
+        "below_baseline": true
+      },
+      "environment": {
+        "temperature_f": 90.0,
+        "humidity_pct": 75.0
+      },
+      "wrist_temperature": {
+        "value_f": 98.7,
+        "elevated": false
+      }
+    },
+    {
+      "id": "ep-007",
+      "timestamp": "2026-01-21T22:40:00+00:00",
+      "day_of_week": "Wednesday",
+      "medication_coverage": {
+        "nadolol": {
+          "pct_remaining": 72.0,
+          "hours_since_dose": 8.7,
+          "in_trough": false
+        },
+        "flecainide": {
+          "pct_remaining": 68.0,
+          "hours_since_dose": 4.7,
+          "in_trough": false
+        }
+      },
+      "hrv_context": {
+        "at_event_ms": 31.0,
+        "baseline_ms": 35.0,
+        "deviation_pct": -11.4
+      },
+      "heart_rate": {
+        "at_event_bpm": 95.0,
+        "baseline_bpm": 78.0
+      },
+      "afib_result": {
+        "detected": false,
+        "confidence": 0.15
+      },
+      "sleep_prior_night": {
+        "duration_hours": 3.5,
+        "baseline_hours": 7.2,
+        "below_baseline": true
+      },
+      "environment": {
+        "temperature_f": 78.0,
+        "humidity_pct": 50.0
+      },
+      "wrist_temperature": {
+        "value_f": 99.8,
+        "elevated": true
+      }
+    },
+    {
+      "id": "ep-008",
+      "timestamp": "2026-01-28T06:05:00+00:00",
+      "day_of_week": "Tuesday",
+      "medication_coverage": {
+        "nadolol": {
+          "pct_remaining": 39.0,
+          "hours_since_dose": 20.1,
+          "in_trough": true
+        },
+        "flecainide": {
+          "pct_remaining": 43.0,
+          "hours_since_dose": 8.1,
+          "in_trough": true
+        }
+      },
+      "hrv_context": {
+        "at_event_ms": 18.0,
+        "baseline_ms": 35.0,
+        "deviation_pct": -48.6
+      },
+      "heart_rate": {
+        "at_event_bpm": 118.0,
+        "baseline_bpm": 78.0
+      },
+      "afib_result": {
+        "detected": false,
+        "confidence": 0.41
+      },
+      "sleep_prior_night": {
+        "duration_hours": 6.0,
+        "baseline_hours": 7.2,
+        "below_baseline": true
+      },
+      "environment": {
+        "temperature_f": 87.0,
+        "humidity_pct": 68.0
+      },
+      "wrist_temperature": {
+        "value_f": 98.5,
+        "elevated": false
+      }
+    },
+    {
+      "id": "ep-009",
+      "timestamp": "2026-02-06T03:22:00+00:00",
+      "day_of_week": "Thursday",
+      "medication_coverage": {
+        "nadolol": {
+          "pct_remaining": 46.0,
+          "hours_since_dose": 19.4,
+          "in_trough": true
+        },
+        "flecainide": {
+          "pct_remaining": 52.0,
+          "hours_since_dose": 7.4,
+          "in_trough": false
+        }
+      },
+      "hrv_context": {
+        "at_event_ms": 25.0,
+        "baseline_ms": 35.0,
+        "deviation_pct": -28.6
+      },
+      "heart_rate": {
+        "at_event_bpm": 105.0,
+        "baseline_bpm": 78.0
+      },
+      "afib_result": {
+        "detected": false,
+        "confidence": 0.19
+      },
+      "sleep_prior_night": {
+        "duration_hours": 7.5,
+        "baseline_hours": 7.2,
+        "below_baseline": false
+      },
+      "environment": {
+        "temperature_f": 82.0,
+        "humidity_pct": 55.0
+      },
+      "wrist_temperature": {
+        "value_f": 98.4,
+        "elevated": false
+      }
+    },
+    {
+      "id": "ep-010",
+      "timestamp": "2026-02-14T09:50:00+00:00",
+      "day_of_week": "Friday",
+      "medication_coverage": {
+        "nadolol": {
+          "pct_remaining": 33.0,
+          "hours_since_dose": 23.8,
+          "in_trough": true
+        },
+        "flecainide": {
+          "pct_remaining": 35.0,
+          "hours_since_dose": 11.8,
+          "in_trough": true
+        }
+      },
+      "hrv_context": {
+        "at_event_ms": 15.0,
+        "baseline_ms": 35.0,
+        "deviation_pct": -57.1
+      },
+      "heart_rate": {
+        "at_event_bpm": 125.0,
+        "baseline_bpm": 78.0
+      },
+      "afib_result": {
+        "detected": true,
+        "confidence": 0.62
+      },
+      "sleep_prior_night": {
+        "duration_hours": 4.2,
+        "baseline_hours": 7.2,
+        "below_baseline": true
+      },
+      "environment": {
+        "temperature_f": 93.0,
+        "humidity_pct": 80.0
+      },
+      "wrist_temperature": {
+        "value_f": 99.0,
+        "elevated": true
+      }
+    },
+    {
+      "id": "ep-011",
+      "timestamp": "2026-02-21T19:15:00+00:00",
+      "day_of_week": "Saturday",
+      "medication_coverage": {
+        "nadolol": {
+          "pct_remaining": 50.0,
+          "hours_since_dose": 17.3,
+          "in_trough": true
+        },
+        "flecainide": {
+          "pct_remaining": 59.0,
+          "hours_since_dose": 5.3,
+          "in_trough": false
+        }
+      },
+      "hrv_context": {
+        "at_event_ms": 27.0,
+        "baseline_ms": 35.0,
+        "deviation_pct": -22.9
+      },
+      "heart_rate": {
+        "at_event_bpm": 100.0,
+        "baseline_bpm": 78.0
+      },
+      "afib_result": {
+        "detected": false,
+        "confidence": 0.14
+      },
+      "sleep_prior_night": {
+        "duration_hours": 5.8,
+        "baseline_hours": 7.2,
+        "below_baseline": true
+      },
+      "environment": {
+        "temperature_f": 76.0,
+        "humidity_pct": 48.0
+      },
+      "wrist_temperature": {
+        "value_f": 98.3,
+        "elevated": false
+      }
+    }
+  ],
+  "pharmacokinetic_analysis": {
+    "drugs": [
+      {
+        "name": "nadolol",
+        "dose_mg": 40.0,
+        "half_life_hours": 22.0,
+        "schedule": "once daily, 08:00",
+        "trough_window_start_hours": 16,
+        "trough_threshold_pct": 55.0
+      },
+      {
+        "name": "flecainide",
+        "dose_mg": 50.0,
+        "half_life_hours": 14.0,
+        "schedule": "twice daily, 08:00 / 20:00",
+        "trough_window_start_hours": 10,
+        "trough_threshold_pct": 50.0
+      }
+    ],
+    "trough_episode_correlation": {
+      "episodes_in_trough": 10,
+      "episodes_total": 11,
+      "correlation_pct": 90.9
+    },
+    "adherence": {
+      "nadolol": {
+        "doses_expected": 90,
+        "doses_logged": 87,
+        "adherence_pct": 96.7,
+        "missed_dose_timestamps": [
+          "2025-12-14T14:00:00+00:00",
+          "2025-12-30T14:00:00+00:00",
+          "2026-02-12T14:00:00+00:00"
+        ],
+        "missed_dose_preceded_episode": 0
+      },
+      "flecainide": {
+        "doses_expected": 180,
+        "doses_logged": 174,
+        "adherence_pct": 96.7,
+        "missed_dose_timestamps": [
+          "2025-12-14T14:00:00+00:00",
+          "2025-12-15T02:00:00+00:00",
+          "2025-12-30T14:00:00+00:00",
+          "2025-12-31T02:00:00+00:00",
+          "2026-02-12T14:00:00+00:00",
+          "2026-02-13T02:00:00+00:00"
+        ],
+        "missed_dose_preceded_episode": 0
+      }
+    }
+  },
+  "autonomic_trends": {
+    "hrv_baseline": {
+      "period_start_ms": 24.0,
+      "period_end_ms": 27.0,
+      "trend": "improving",
+      "change_pct": 12.5
+    },
+    "notable_hrv_dips": [
+      {
+        "timestamp": "2025-12-16T04:45:00+00:00",
+        "value_ms": 19.0,
+        "associated_episode_id": "ep-002"
+      },
+      {
+        "timestamp": "2026-01-01T07:20:00+00:00",
+        "value_ms": 17.0,
+        "associated_episode_id": "ep-004"
+      },
+      {
+        "timestamp": "2026-01-15T01:55:00+00:00",
+        "value_ms": 21.0,
+        "associated_episode_id": "ep-006"
+      },
+      {
+        "timestamp": "2026-01-28T06:05:00+00:00",
+        "value_ms": 18.0,
+        "associated_episode_id": "ep-008"
+      },
+      {
+        "timestamp": "2026-02-14T09:50:00+00:00",
+        "value_ms": 15.0,
+        "associated_episode_id": "ep-010"
+      }
+    ]
+  },
+  "trigger_analysis": {
+    "top_correlates": [
+      {
+        "factor": "medication_trough",
+        "appeared_in_n": 10,
+        "of_total": 11,
+        "pct": 90.9
+      },
+      {
+        "factor": "poor_sleep",
+        "appeared_in_n": 9,
+        "of_total": 11,
+        "pct": 81.8
+      },
+      {
+        "factor": "high_temperature",
+        "appeared_in_n": 7,
+        "of_total": 11,
+        "pct": 63.6
+      },
+      {
+        "factor": "dual_trough",
+        "appeared_in_n": 5,
+        "of_total": 11,
+        "pct": 45.5
+      },
+      {
+        "factor": "elevated_wrist_temp",
+        "appeared_in_n": 3,
+        "of_total": 11,
+        "pct": 27.3
+      }
+    ],
+    "compound_patterns": [
+      {
+        "factors": [
+          "medication_trough",
+          "poor_sleep"
+        ],
+        "co_occurred_n": 8,
+        "of_total": 11
+      },
+      {
+        "factors": [
+          "medication_trough",
+          "high_temperature"
+        ],
+        "co_occurred_n": 7,
+        "of_total": 11
+      },
+      {
+        "factors": [
+          "high_temperature",
+          "poor_sleep"
+        ],
+        "co_occurred_n": 6,
+        "of_total": 11
+      },
+      {
+        "factors": [
+          "medication_trough",
+          "dual_trough"
+        ],
+        "co_occurred_n": 5,
+        "of_total": 11
+      },
+      {
+        "factors": [
+          "high_temperature",
+          "dual_trough"
+        ],
+        "co_occurred_n": 5,
+        "of_total": 11
+      },
+      {
+        "factors": [
+          "poor_sleep",
+          "dual_trough"
+        ],
+        "co_occurred_n": 5,
+        "of_total": 11
+      },
+      {
+        "factors": [
+          "poor_sleep",
+          "elevated_wrist_temp"
+        ],
+        "co_occurred_n": 3,
+        "of_total": 11
+      }
+    ],
+    "data_sufficiency": "sufficient",
+    "note": null
+  },
+  "supporting_context": {
+    "sleep_trend": {
+      "avg_duration_hours": 5.4,
+      "baseline_duration_hours": 7.2,
+      "trend": "stable"
+    },
+    "environmental_exposures": {
+      "episodes_above_85f": 7,
+      "episodes_above_90f": 4
+    }
+  }
+}
