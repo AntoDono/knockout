@@ -6,7 +6,7 @@
 # A TKOS patient on nadolol 40mg BID (morning + evening) is approaching
 # the end of the dosing interval.  Plasma levels have decayed into sub-
 # therapeutic range.  An AFib episode emerges in the ICD gap (70–160 bpm) –
-# completely invisible to the device.  Guardrail catches it via HRV analysis.
+# completely invisible to the device.  Knockout catches it via HRV analysis.
 #
 # The evening dose fires at t=45m, plasma levels recover, and the patient
 # returns to normal sinus rhythm.

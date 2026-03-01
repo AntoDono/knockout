@@ -6,7 +6,7 @@
 # A missed dose combined with an exertion trigger precipitates a VT storm.
 # The first two episodes fall below the ICD's VT detection cutoff (160 bpm)
 # and are invisible to the device.  The third episode breaks into the VF zone
-# (≥200 bpm) – but Guardrail has already been flagging the subclinical runs.
+# (≥200 bpm) – but Knockout has already been flagging the subclinical runs.
 #
 # This is the core clinical value proposition: catching the escalating
 # pattern before the ICD is forced to intervene.
@@ -16,7 +16,7 @@ name:        "Ventricular Tachycardia Storm"
 description: >
   Missed nadolol dose + exertion trigger produces three VT runs.
   First two are subclinical (below ICD detection). Third breaches VF zone.
-  Illustrates Guardrail's early-warning capability.
+  Illustrates Knockout's early-warning capability.
 speed:    30
 duration: "45m"
 

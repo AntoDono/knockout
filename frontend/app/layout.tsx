@@ -12,7 +12,7 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Guardrail · TKOS Cardiac Monitoring",
+  title: "Knockout · TKOS Cardiac Monitoring",
   description: "Cardiac monitoring platform for Triadin Knockout Syndrome",
 };
 

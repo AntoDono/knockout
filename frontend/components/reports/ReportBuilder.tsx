@@ -60,7 +60,7 @@ export function ReportBuilder() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `guardrail-${specialist}-report.pdf`;
+      a.download = `knockout-${specialist}-report.pdf`;
       document.body.appendChild(a);
       a.click();
       a.remove();

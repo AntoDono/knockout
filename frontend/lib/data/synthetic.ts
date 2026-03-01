@@ -457,7 +457,7 @@ export const EPISODE_SUMMARY: EpisodeSummary = {
     { label: "Dual drug trough", correlationPct: 33, color: "red" },
     { label: "Elevated body temp", correlationPct: 17, color: "green" },
   ],
-  narrative: "Over the past 7 days, episodes cluster during nadolol trough windows \u2014 4 of 6 events occurred when drug coverage was below 30%. Sleep quality compounds this: episodes following poor sleep show higher heart rates (avg 92 vs 85 bpm). Notably, all 6 episodes fell within the ICD gap (70\u2013190 bpm), reinforcing that Guardrail is capturing events the ICD deliberately ignores. One episode occurred at therapeutic drug levels and may warrant clinical discussion.",
+  narrative: "Over the past 7 days, episodes cluster during nadolol trough windows \u2014 4 of 6 events occurred when drug coverage was below 30%. Sleep quality compounds this: episodes following poor sleep show higher heart rates (avg 92 vs 85 bpm). Notably, all 6 episodes fell within the ICD gap (70\u2013190 bpm), reinforcing that Knockout is capturing events the ICD deliberately ignores. One episode occurred at therapeutic drug levels and may warrant clinical discussion.",
 };
 
 // ── Weather ──────────────────────────────────────────────

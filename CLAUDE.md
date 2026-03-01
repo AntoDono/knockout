@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Guardrail — a cardiac monitoring platform for Triadin Knockout Syndrome (TKOS), an ultra-rare inherited heart condition (~340 patients worldwide). The system passively monitors a patient's body and environment, lets them flag symptomatic moments with one tap, and generates physician reports that make subclinical events visible.
+Knockout — a cardiac monitoring platform for Triadin Knockout Syndrome (TKOS), an ultra-rare inherited heart condition (~340 patients worldwide). The system passively monitors a patient's body and environment, lets them flag symptomatic moments with one tap, and generates physician reports that make subclinical events visible.
 
 ## Commands
 
@@ -118,7 +118,7 @@ Frontend currently simulates vitals; not yet wired to backend API.
 
 ## Domain concepts
 
-**ICD Gap:** The patient's ICD ignores arrhythmias between 70-190 bpm to prevent shock storms. Guardrail monitors this blind zone. `GET /patient/icd/gap` returns the boundaries.
+**ICD Gap:** The patient's ICD ignores arrhythmias between 70-190 bpm to prevent shock storms. Knockout monitors this blind zone. `GET /patient/icd/gap` returns the boundaries.
 
 **PK decay model:** `remaining = amount_mg * 0.5^(elapsed_s / half_life_s)`. Implemented in both `database.py` (backend) and `lib/simulate.ts` (frontend). Nadolol half-life = 22h; symptoms cluster during trough windows.
 

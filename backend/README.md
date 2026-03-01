@@ -1,6 +1,6 @@
-# Guardrail Backend
+# Knockout Backend
 
-HTTP + WebSocket server for the Guardrail TKOS platform. Handles sensor data ingestion, drug/dose tracking with pharmacokinetic decay modeling, live heart-rate streaming with AFib detection, and cardiology report generation.
+HTTP + WebSocket server for the Knockout TKOS platform. Handles sensor data ingestion, drug/dose tracking with pharmacokinetic decay modeling, live heart-rate streaming with AFib detection, and cardiology report generation.
 
 ## Prerequisites
 
