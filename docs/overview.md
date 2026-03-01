@@ -1,4 +1,4 @@
-# Guardrail — Project Overview
+# Knockout — Project Overview
 
 ## What We're Building (One Sentence)
 
@@ -41,7 +41,7 @@ Even when events are documented, nobody systematically asks: was she at the lowe
 
 ---
 
-## How Guardrail Works
+## How Knockout Works
 
 ### Layer 1: Clinical Foundation (One-Time Onboarding)
 
@@ -190,7 +190,7 @@ During an episode, cognitive load is at its peak. Every patient interaction is d
 The model states its confidence. Early on, it says "I don't have enough data yet." It never pretends to know more than it does. Gaps and limitations are documented, not hidden.
 
 ### The ICD's partner, not its replacement
-Guardrail doesn't compete with the implanted device. It captures what the ICD deliberately ignores — the subclinical events, the trends, the compound context. Together, they create a complete picture that neither provides alone.
+Knockout doesn't compete with the implanted device. It captures what the ICD deliberately ignores — the subclinical events, the trends, the compound context. Together, they create a complete picture that neither provides alone.
 
 ---
 
@@ -222,7 +222,7 @@ This project addresses Track 3: Symptom Management.
 
 A child with TKOS today lives under blanket restriction. Don't run. Don't swim. Be careful. The fear is constant — for the child and the family. Care is reactive: something happens, then everyone responds.
 
-Guardrail shifts the frame. It watches passively, learns personally, and over time builds a picture of this specific patient's risk landscape that no 15-minute visit could ever produce. It gives the doctor data they've never had. And it fills the gap between what her ICD catches and what actually happens in her body every day.
+Knockout shifts the frame. It watches passively, learns personally, and over time builds a picture of this specific patient's risk landscape that no 15-minute visit could ever produce. It gives the doctor data they've never had. And it fills the gap between what her ICD catches and what actually happens in her body every day.
 
 The technology isn't the point. The point is a child who gets told "today is a good day" — and a parent who can believe it.
 

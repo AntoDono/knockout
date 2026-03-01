@@ -226,7 +226,7 @@ interface ContributingFactor {
 - **Personal baselines, not population norms**: Every deviation is compared against Dishita's own 7-day rolling averages.
 - **Honest uncertainty**: Where data is insufficient, say so. "Insufficient data to determine sleep correlation" is better than guessing.
 - **Multi-drug awareness**: Always show all cardiac-relevant medications, not just the primary one.
-- **ICD gap visibility**: Every episode that falls within the 70–190 bpm blind zone is explicitly flagged — this is Guardrail's core value proposition.
+- **ICD gap visibility**: Every episode that falls within the 70–190 bpm blind zone is explicitly flagged — this is Knockout's core value proposition.
 
 ---
 

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Shield } from "lucide-react";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
@@ -19,8 +19,8 @@ export function TopNav() {
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-white/80 backdrop-blur-lg">
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-8 px-6">
         <Link href="/" className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-primary" />
-          <span className="text-lg font-bold text-foreground">Guardrail</span>
+          <Image src="/logo.png" alt="Knockout logo" height={36} width={36} className="rounded-sm" />
+          <span className="text-lg font-bold text-foreground">Knockout</span>
         </Link>
 
         <nav className="hidden sm:flex items-center gap-1">

@@ -45,7 +45,7 @@ def get_report(
 
     pdf_bytes = generate_pdf_bytes(report, patient_data=data["patient"])
     patient_name = data["patient"].get("name", "patient").replace(" ", "_")
-    filename = f"guardrail_{type}_report_{patient_name}.pdf"
+    filename = f"knockout_{type}_report_{patient_name}.pdf"
 
     return Response(
         content=pdf_bytes,
