@@ -1,12 +1,14 @@
 "use client";
 import { useState } from "react";
 import Link from "next/link";
-import { EPISODES } from "@/lib/data/synthetic";
+import { useFetch } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import type { Episode } from "@/lib/types";
 
 export function RecentEpisodes() {
   const [now] = useState(() => Date.now());
-  const recent = EPISODES.slice(0, 4);
+  const { data: episodes } = useFetch<Episode[]>("/episodes");
+  const recent = (episodes ?? []).slice(0, 4);
 
   function timeAgo(dateStr: string): string {
     const diff = now - new Date(dateStr).getTime();
@@ -28,36 +30,23 @@ export function RecentEpisodes() {
         </Link>
       </div>
       <div className="space-y-3">
+        {recent.length === 0 && (
+          <p className="text-sm text-muted-foreground">No episodes recorded yet.</p>
+        )}
         {recent.map((ep) => (
           <div
             key={ep.id}
             className={cn(
-              "flex items-center gap-3 p-3 rounded-xl border",
-              ep.drugLevelPct < 30 ? "border-red-200 bg-red-50/50" :
-              ep.drugLevelPct < 50 ? "border-amber-200 bg-amber-50/50" :
-              "border-border bg-muted/30"
+              "flex items-center gap-3 p-3 rounded-xl border border-border bg-muted/30"
             )}
           >
-            <div className={cn(
-              "h-2 w-2 rounded-full flex-shrink-0",
-              ep.drugLevelPct < 30 ? "bg-red-500" :
-              ep.drugLevelPct < 50 ? "bg-amber-500" :
-              "bg-green-500"
-            )} />
+            <div className="h-2 w-2 rounded-full shrink-0 bg-primary" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-foreground">{timeAgo(ep.recordedAt)}</p>
               <p className="text-xs text-muted-foreground">
-                HR {ep.heartRate} · HRV {ep.hrv} ms
+                {ep.notes ?? ep.source ?? "Patient tap"}
               </p>
             </div>
-            <span className={cn(
-              "text-xs font-medium px-2 py-0.5 rounded-full",
-              ep.drugLevelPct < 30 ? "bg-red-100 text-red-700" :
-              ep.drugLevelPct < 50 ? "bg-amber-100 text-amber-700" :
-              "bg-green-100 text-green-700"
-            )}>
-              {ep.drugLevelPct}%
-            </span>
           </div>
         ))}
       </div>

@@ -3,12 +3,12 @@ import {
   ComposedChart, Line, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, ReferenceLine, ReferenceArea,
 } from "recharts";
-import type { Episode } from "@/lib/types";
-import { HR_HISTORY, HRV_HISTORY } from "@/lib/data/synthetic";
 import { decayConcentration } from "@/lib/simulate";
 
 interface EpisodeTimelineProps {
-  episode: Episode;
+  recordedAt: string;
+  hrData: { recordedAt: string; hrBpm: number }[];
+  hrvData: { recordedAt: string; hrvMs: number }[];
 }
 
 interface TimelinePoint {
@@ -20,14 +20,17 @@ interface TimelinePoint {
   spironolactone: number;
 }
 
-function buildTimelineData(episode: Episode): TimelinePoint[] {
-  const epTime = new Date(episode.recordedAt).getTime();
+function buildTimelineData(
+  recordedAt: string,
+  hrData: { recordedAt: string; hrBpm: number }[],
+  hrvData: { recordedAt: string; hrvMs: number }[],
+): TimelinePoint[] {
+  const epTime = new Date(recordedAt).getTime();
   const windowMs = 12 * 60 * 60 * 1000;
   const startMs = epTime - windowMs;
   const endMs = epTime + windowMs;
   const points: TimelinePoint[] = [];
 
-  // Build 30-min resolution points
   for (let t = startMs; t <= endMs; t += 30 * 60 * 1000) {
     const d = new Date(t);
     const hour = d.getHours();
@@ -35,8 +38,8 @@ function buildTimelineData(episode: Episode): TimelinePoint[] {
     const label = `${hour.toString().padStart(2, "0")}:${min.toString().padStart(2, "0")}`;
 
     // Find nearest HR reading (within 5 min)
-    const nearHr = HR_HISTORY.find((r) => Math.abs(new Date(r.recordedAt).getTime() - t) < 5 * 60 * 1000);
-    const nearHrv = HRV_HISTORY.find((r) => Math.abs(new Date(r.recordedAt).getTime() - t) < 5 * 60 * 1000);
+    const nearHr = hrData.find((r) => Math.abs(new Date(r.recordedAt).getTime() - t) < 5 * 60 * 1000);
+    const nearHrv = hrvData.find((r) => Math.abs(new Date(r.recordedAt).getTime() - t) < 5 * 60 * 1000);
 
     // Compute drug levels at this time
     // Nadolol: BID at 09:00 and 20:00, half-life 22h
@@ -46,7 +49,6 @@ function buildTimelineData(episode: Episode): TimelinePoint[] {
       const dose = new Date(d);
       dose.setHours(doseHour, 0, 0, 0);
       if (dose > d) dose.setDate(dose.getDate() - 1);
-      // Also check previous day's dose
       const prevDose = new Date(dose);
       prevDose.setDate(prevDose.getDate() - 1);
       nadolol += decayConcentration(dose, 22, d) * 0.5;
@@ -73,11 +75,10 @@ function buildTimelineData(episode: Episode): TimelinePoint[] {
   return points;
 }
 
-export function EpisodeTimeline({ episode }: EpisodeTimelineProps) {
-  const data = buildTimelineData(episode);
-  const epTime = new Date(episode.recordedAt).getTime();
+export function EpisodeTimeline({ recordedAt, hrData, hrvData }: EpisodeTimelineProps) {
+  const data = buildTimelineData(recordedAt, hrData, hrvData);
+  const epTime = new Date(recordedAt).getTime();
 
-  // Find the closest data point to the episode time for the reference line
   const epLabel = data.reduce((closest, p) =>
     Math.abs(p.time - epTime) < Math.abs(closest.time - epTime) ? p : closest
   , data[0]).label;

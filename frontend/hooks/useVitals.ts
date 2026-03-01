@@ -1,7 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
-import { BASELINES, MEDICATIONS } from "@/lib/data/synthetic";
-import { getCurrentDrugLevel } from "@/lib/simulate";
+import { useFetch } from "@/lib/api";
+import { useHeartSocket } from "@/hooks/useHeartSocket";
+import type { Baselines } from "@/lib/types";
+
+const FALLBACK_HR = 74;
+const FALLBACK_HRV = 42;
 
 interface Vitals {
   hr: number;
@@ -10,42 +14,50 @@ interface Vitals {
 }
 
 export function useVitals(intervalMs = 5000): Vitals {
-  const [vitals, setVitals] = useState<Vitals>(() => {
-    const nadolol = MEDICATIONS.find((m) => m.drugName === "nadolol");
-    const drugLevel = nadolol?.halfLifeHours
-      ? getCurrentDrugLevel(nadolol.halfLifeHours, nadolol.doseTimes)
-      : 0;
-    return {
-      hr: BASELINES.hr.mean,
-      hrv: BASELINES.hrv.mean,
-      drugLevel,
-    };
+  const socket = useHeartSocket();
+  const { data: baselines } = useFetch<Baselines>("/baselines");
+
+  const meanHrv = baselines?.hrv?.mean ?? FALLBACK_HRV;
+
+  const [fallbackVitals, setFallbackVitals] = useState<Vitals>({
+    hr: FALLBACK_HR,
+    hrv: FALLBACK_HRV,
+    drugLevel: 0,
   });
 
-  useEffect(() => {
-    const tick = () => {
-      const nadolol = MEDICATIONS.find((m) => m.drugName === "nadolol");
-      const drugLevel = nadolol?.halfLifeHours
-        ? getCurrentDrugLevel(nadolol.halfLifeHours, nadolol.doseTimes)
-        : 0;
+  // Fallback jitter simulation when WebSocket has no BPM data
+  const hasLiveBpm = socket.connected && socket.latestBpm !== null;
 
-      // Simulate small natural variation around baselines
+  useEffect(() => {
+    if (hasLiveBpm) return;
+
+    const meanHr = baselines?.hr?.mean ?? FALLBACK_HR;
+    const tick = () => {
       const hrJitter = (Math.random() - 0.5) * 4;
       const hrvJitter = (Math.random() - 0.5) * 6;
-      // Trough effect: HR rises, HRV drops when drug is low
-      const troughHrBoost = drugLevel < 30 ? 8 : drugLevel < 50 ? 3 : 0;
-      const troughHrvDrop = drugLevel < 30 ? -10 : drugLevel < 50 ? -4 : 0;
-
-      setVitals({
-        hr: Math.round(BASELINES.hr.mean + hrJitter + troughHrBoost),
-        hrv: Math.round(BASELINES.hrv.mean + hrvJitter + troughHrvDrop),
-        drugLevel,
+      setFallbackVitals({
+        hr: Math.round(meanHr + hrJitter),
+        hrv: Math.round(meanHrv + hrvJitter),
+        drugLevel: 0,
       });
     };
 
+    tick();
     const id = setInterval(tick, intervalMs);
     return () => clearInterval(id);
-  }, [intervalMs]);
+  }, [intervalMs, hasLiveBpm, baselines?.hr?.mean, meanHrv]);
 
-  return vitals;
+  if (hasLiveBpm) {
+    const drugPct = socket.drugLevels?.[0]?.pctRemaining ?? 0;
+    const hrvFromAfib = socket.afib?.rmssdMs;
+    return {
+      hr: Math.round(socket.latestBpm!),
+      hrv: hrvFromAfib != null ? Math.round(hrvFromAfib) : Math.round(meanHrv),
+      drugLevel: Math.round(drugPct),
+    };
+  }
+
+  return fallbackVitals;
 }
+
+export { useHeartSocket };

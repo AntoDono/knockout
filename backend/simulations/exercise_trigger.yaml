@@ -1,0 +1,75 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# Scenario: Exercise-Triggered VT in ICD Gap
+# ──────────────────────────────────────────────────────────────────────────────
+# What this demonstrates
+# ─────────────────────
+# The patient exercises during the nadolol trough window.  Heart rate spikes
+# rapidly from resting to exertion levels, triggering a brief VT run that
+# stays below the ICD's 160 bpm detection threshold — completely invisible
+# to the device but caught by Guardrail's HRV analysis.
+#
+# Speed 200× compresses 20 minutes into ~6 seconds of wall time.
+# ──────────────────────────────────────────────────────────────────────────────
+
+name:        "Exercise-Triggered VT"
+description: >
+  Exertion during nadolol trough triggers a brief VT run in the ICD gap.
+  The episode is invisible to the ICD but detected by HRV analysis.
+speed:    200
+duration: "20m"
+
+drugs:
+  - name: nadolol
+    doses:
+      - amount_mg: 40
+        taken_at: "-10h"
+
+  - name: spironolactone
+    doses:
+      - amount_mg: 25
+        taken_at: "-8h"
+
+heart:
+  baseline_bpm: 66
+  noise_std:    2.5
+  segments:
+    # Resting – trough levels, slightly elevated baseline
+    - start:   "0m"
+      end:     "3m"
+      pattern: normal
+      bpm:     66
+
+    # Warm-up – gentle increase
+    - start:   "3m"
+      end:     "6m"
+      pattern: normal
+      bpm:     88
+      bpm_std: 5.0
+
+    # Full exertion – sinus tachycardia
+    - start:   "6m"
+      end:     "9m"
+      pattern: tachycardia
+      bpm:     120
+      bpm_std: 8.0
+
+    # VT run – stays in ICD gap (below 160 bpm)
+    - start:    "9m"
+      end:      "13m"
+      pattern:  vt
+      bpm:      148
+      bpm_std:  5.0
+
+    # Cool-down – VT self-terminates
+    - start:   "13m"
+      end:     "16m"
+      pattern: tachycardia
+      bpm:     95
+      bpm_std: 6.0
+
+    # Recovery – returning toward baseline
+    - start:   "16m"
+      end:     "20m"
+      pattern: normal
+      bpm:     70
+      bpm_std: 3.0

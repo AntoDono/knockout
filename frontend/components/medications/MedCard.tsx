@@ -1,25 +1,40 @@
 "use client";
+import { useState } from "react";
 import { Pill, Clock, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { Medication } from "@/lib/types";
-import { getCurrentDrugLevel, getLastDose } from "@/lib/simulate";
+import type { Medication, DrugLevel } from "@/lib/types";
+import { useFetch, mutate } from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface MedCardProps {
   medication: Medication;
 }
 
 export function MedCard({ medication: med }: MedCardProps) {
-  const now = new Date();
-  let level = 0;
-  let hoursSinceDose = 0;
+  const [now] = useState(() => Date.now());
+  const { data: levels, refetch } = useFetch<DrugLevel[]>("/levels");
 
-  if (med.halfLifeHours) {
-    level = getCurrentDrugLevel(med.halfLifeHours, med.doseTimes, now);
-    const lastDose = getLastDose(med.doseTimes, now);
-    hoursSinceDose = Math.round((now.getTime() - lastDose.getTime()) / (1000 * 60 * 60));
-  }
+  const lvl = levels?.find((l) => l.drug === med.drugName);
+  const level = lvl ? Math.round(lvl.pctRemaining) : 0;
+
+  const lastDose = lvl?.doses?.length
+    ? lvl.doses.reduce((a, b) => (new Date(a.takenAt) > new Date(b.takenAt) ? a : b))
+    : null;
+  const hoursSinceDose = lastDose
+    ? Math.round((now - new Date(lastDose.takenAt).getTime()) / (1000 * 60 * 60))
+    : 0;
+
+  const handleTookDose = async () => {
+    try {
+      await mutate("/doses", { drug: med.drugName, amountMg: med.doseMg });
+      toast.success("Dose logged", { description: `${med.drugName} ${med.doseMg}mg recorded.` });
+      refetch();
+    } catch {
+      toast.error("Failed to log dose");
+    }
+  };
 
   return (
     <div className="rounded-2xl bg-card p-6 shadow-sm">
@@ -54,7 +69,7 @@ export function MedCard({ medication: med }: MedCardProps) {
             <div className={cn("h-full rounded-full transition-all", level >= 50 ? "bg-primary" : level >= 30 ? "bg-amber-500" : "bg-red-500")} style={{ width: `${level}%` }} />
           </div>
           <div className="flex justify-between mt-1 text-[10px] text-muted-foreground">
-            <span>Last dose: {hoursSinceDose}h ago</span>
+            <span>{lastDose ? `Last dose: ${hoursSinceDose}h ago` : "No doses logged"}</span>
             <span>t½ {med.halfLifeHours}h</span>
           </div>
         </div>
@@ -70,7 +85,7 @@ export function MedCard({ medication: med }: MedCardProps) {
       </div>
 
       {med.halfLifeHours && (
-        <Button variant="outline" size="sm" className="w-full mt-4">
+        <Button variant="outline" size="sm" className="w-full mt-4" onClick={handleTookDose}>
           <Clock className="h-3.5 w-3.5 mr-1.5" />Took dose
         </Button>
       )}
