@@ -1,0 +1,512 @@
+{
+  "patient": {
+    "first_name": "Lily",
+    "last_name": "Chen",
+    "date_of_birth": "2007-04-22",
+    "sex": "female",
+    "height_cm": 171.6,
+    "weight_kg": 83.0,
+    "bmi": 28.19,
+    "primary_diagnosis": "Triadin Knockout Syndrome (TKOS)",
+    "gene_variant": null,
+    "diagnosis_date": "2024-05-30",
+    "has_myopathy": true,
+    "has_sick_sinus": true,
+    "cardiac_arrest_history": "Yes — prior cardiac arrest, ICD shocks 2011/2013/2015",
+    "sympathetic_denervation": true
+  },
+
+  "diagnoses": [
+    { "diagnosis": "Triadin Knockout Syndrome (TKOS)", "noted_date": "2024-05-30", "notes": "Genetic confirmation of TRDN variant" },
+    { "diagnosis": "Long QT Syndrome", "noted_date": "2015-06-26", "notes": null },
+    { "diagnosis": "Sick Sinus Syndrome", "noted_date": "2018-11-25", "notes": "Pacemaker-dependent" },
+    { "diagnosis": "Myopathy", "noted_date": "2015-08-11", "notes": null },
+    { "diagnosis": "Syncope", "noted_date": "2015-06-26", "notes": null },
+    { "diagnosis": "Cardiac Arrest", "noted_date": null, "notes": "History of cardiac arrest with ICD discharges" },
+    { "diagnosis": "Atrial Fibrillation", "noted_date": "2022-03-27", "notes": null },
+    { "diagnosis": "Atrial Fibrillation with Rapid Ventricular Response", "noted_date": "2024-02-02", "notes": "ICD shock delivered (41J)" },
+    { "diagnosis": "", "noted_date": "2025-11-20", "notes": null },
+    { "diagnosis": "", "noted_date": "2024-02-02", "notes": null },
+    { "diagnosis": "Polycystic Ovary Syndrome (PCOS)", "noted_date": "2024-11-26", "notes": null }
+  ],
+
+  "allergies": [
+    { "allergen": "All medications that prolong QT", "reaction": null }
+  ],
+
+  "triggers": [
+    { "trigger_type": "running", "source": "ICD discharge 2011", "confidence": "documented", "notes": "ICD shock while jogging outdoors" },
+    { "trigger_type": "playing sports", "source": "ICD discharge 2013", "confidence": "documented", "notes": "ICD shock during recreational sports" },
+    { "trigger_type": "cycling", "source": "ICD discharge 2/2015", "confidence": "documented", "notes": "ICD shock while riding a bicycle" },
+    { "trigger_type": "sleep deprivation", "source": "clinical note", "confidence": "patient_reported", "notes": "Symptoms more pronounced after fewer than 6 hours of sleep" },
+    { "trigger_type": "physical exertion / walking", "source": "clinical note", "confidence": "patient_reported", "notes": "Symptoms exacerbated by walking and physical exertion" }
+  ],
+
+  "medications": [
+    {
+      "drug_name": "nadolol",
+      "brand_name": "Corgard",
+      "drug_class": "beta_blocker",
+      "is_cardiac": true,
+      "dose_mg": 40.0,
+      "dose_unit": "mg",
+      "frequency": "twice_daily",
+      "dose_times": "[\"09:00\",\"20:00\"]",
+      "half_life_hours": 22.0,
+      "dose_per_kg": 0.48,
+      "started_date": null,
+      "is_active": true,
+      "notes": "Evening dose typically taken between 8-11pm; 20:00 is the default"
+    },
+    {
+      "drug_name": "flecainide",
+      "brand_name": null,
+      "drug_class": "potassium_sparing_diuretic",
+      "is_cardiac": false,
+      "dose_mg": 25.0,
+      "dose_unit": "mg",
+      "frequency": "once_daily",
+      "dose_times": "[\"09:00\"]",
+      "half_life_hours": null,
+      "dose_per_kg": null,
+      "started_date": null,
+      "is_active": true,
+      "notes": null
+    },
+    {
+      "drug_name": "magnesium oxide",
+      "brand_name": "Mag-Ox 400",
+      "drug_class": "oral_contraceptive",
+      "is_cardiac": false,
+      "dose_mg": 0.0,
+      "dose_unit": "mg",
+      "frequency": "once_daily",
+      "dose_times": "[\"09:00\"]",
+      "half_life_hours": null,
+      "dose_per_kg": null,
+      "started_date": null,
+      "is_active": true,
+      "notes": null
+    },
+    {
+      "drug_name": "magnesium oxide",
+      "brand_name": "Mag-Ox 400",
+      "drug_class": "vitamin",
+      "is_cardiac": false,
+      "dose_mg": 400.0,
+      "dose_unit": "IU",
+      "frequency": "once_daily",
+      "dose_times": "[\"09:00\"]",
+      "half_life_hours": null,
+      "dose_per_kg": null,
+      "started_date": null,
+      "is_active": true,
+      "notes": null
+    },
+    {
+      "drug_name": "multivitamin",
+      "brand_name": null,
+      "drug_class": "supplement",
+      "is_cardiac": false,
+      "dose_mg": 0.0,
+      "dose_unit": "mg",
+      "frequency": "once_daily",
+      "dose_times": "[\"09:00\"]",
+      "half_life_hours": null,
+      "dose_per_kg": null,
+      "started_date": null,
+      "is_active": true,
+      "notes": null
+    }
+  ],
+
+  "icd_devices": [
+    {
+      "manufacturer": "Boston Scientific",
+      "model": "DYNAGEN MINI ICD F210",
+      "serial_number": null,
+      "implant_date": "2023-12-11",
+      "lead_config": "dual chamber",
+      "pacing_mode": "DDDR",
+      "lower_rate_limit_bpm": 70,
+      "max_tracking_rate_bpm": null,
+      "battery_life_years": 11,
+      "battery_status": "normal",
+      "atrial_pacing_pct": 98,
+      "ventricular_pacing_pct": 1,
+      "atrial_lead_impedance": null,
+      "atrial_sensing_mv": null,
+      "ventricular_lead_impedance": null,
+      "ventricular_sensing_mv": null,
+      "shock_impedance_ohms": 57,
+      "last_interrogation_date": "2025-11-10",
+      "last_shock_date": "2024-02-02",
+      "notes": "Current device (3rd generator). Prior generators: 2011 original implant, 2018 replacement, 2023-12-11 current. Emergency reimplant Jul 2024 after lead fracture/generator migration.",
+
+      "zones": [
+        {
+          "zone_name": "VT",
+          "zone_type": "therapy",
+          "rate_cutoff_bpm": 190,
+          "therapies": "[\"31J\",\"41J\",\"41J x4\"]",
+          "atp_enabled": false,
+          "programmed_date": null,
+          "notes": "Shock-only — ATP is OFF"
+        },
+        {
+          "zone_name": "VF",
+          "zone_type": "therapy",
+          "rate_cutoff_bpm": 220,
+          "therapies": "[\"31J\",\"41J\",\"41J x6\"]",
+          "atp_enabled": false,
+          "programmed_date": null,
+          "notes": "Shock-only — ATP is OFF"
+        },
+        {
+          "zone_name": "ATR",
+          "zone_type": "mode_switch",
+          "rate_cutoff_bpm": 170,
+          "therapies": null,
+          "atp_enabled": false,
+          "programmed_date": null,
+          "notes": "Atrial rate mode switch threshold"
+        }
+      ],
+
+      "episodes": [
+        {
+          "episode_datetime": "2025-05-05T12:57",
+          "zone_triggered": "VT",
+          "detected_rate_bpm": 199,
+          "avg_v_rate_bpm": null,
+          "duration_seconds": null,
+          "therapy_delivered": "none",
+          "therapy_result": null,
+          "classification": null,
+          "activity_at_onset": null,
+          "notes": "Self-terminated before therapy delivery"
+        },
+        {
+          "episode_datetime": "2025-10-17T23:10",
+          "zone_triggered": "ATR",
+          "detected_rate_bpm": 151,
+          "avg_v_rate_bpm": 121,
+          "duration_seconds": 3.0,
+          "therapy_delivered": "mode_switch",
+          "therapy_result": null,
+          "classification": null,
+          "activity_at_onset": null,
+          "notes": "Atrial rate 151 bpm, ventricular rate 121 bpm, 3 seconds duration"
+        },
+        {
+          "episode_datetime": "2025-11-08T18:17",
+          "zone_triggered": "ATR",
+          "detected_rate_bpm": 117,
+          "avg_v_rate_bpm": 106,
+          "duration_seconds": null,
+          "therapy_delivered": "mode_switch",
+          "therapy_result": null,
+          "classification": null,
+          "activity_at_onset": null,
+          "notes": "Atrial rate 117 bpm, ventricular rate 106 bpm, brief episode"
+        }
+      ]
+    }
+  ],
+
+  "shock_history": [
+    {
+      "event_date": "2011",
+      "event_type": "ICD discharge",
+      "context": "Running — triggered ventricular arrhythmia",
+      "device_era": "1st generator (2011 implant)"
+    },
+    {
+      "event_date": "2013",
+      "event_type": "ICD discharge",
+      "context": "Playing sports — triggered ventricular arrhythmia",
+      "device_era": "1st generator (2011 implant)"
+    },
+    {
+      "event_date": "2015-02",
+      "event_type": "ICD discharge",
+      "context": "Cycling — triggered ventricular arrhythmia",
+      "device_era": "1st generator (2011 implant, lead revised 2015-01)"
+    },
+    {
+      "event_date": "2024-02-02",
+      "event_type": "ICD discharge",
+      "context": "AF with RVR — 41J shock delivered. Associated with subdural hematoma.",
+      "device_era": "3rd generator (2023-12-11 implant)"
+    }
+  ],
+
+  "ecg_readings": [
+    {
+      "reading_date": "2022-01-27",
+      "hr_bpm": 70,
+      "pr_ms": 168,
+      "qrs_ms": 74,
+      "qt_ms": 430,
+      "qtc_ms": 465,
+      "findings": null,
+      "source": "clinic_ecg",
+      "is_anomalous": false,
+      "notes": null
+    },
+    {
+      "reading_date": "2022-03-27",
+      "hr_bpm": 70,
+      "pr_ms": 166,
+      "qrs_ms": 70,
+      "qt_ms": 424,
+      "qtc_ms": 458,
+      "findings": null,
+      "source": "clinic_ecg",
+      "is_anomalous": false,
+      "notes": null
+    },
+    {
+      "reading_date": "2022-06-30",
+      "hr_bpm": 70,
+      "pr_ms": 172,
+      "qrs_ms": 72,
+      "qt_ms": 414,
+      "qtc_ms": 447,
+      "findings": null,
+      "source": "clinic_ecg",
+      "is_anomalous": false,
+      "notes": null
+    },
+    {
+      "reading_date": "2022-12-05",
+      "hr_bpm": 70,
+      "pr_ms": 170,
+      "qrs_ms": 68,
+      "qt_ms": 440,
+      "qtc_ms": 475,
+      "findings": null,
+      "source": "clinic_ecg",
+      "is_anomalous": false,
+      "notes": null
+    },
+    {
+      "reading_date": "2023-03-27",
+      "hr_bpm": 70,
+      "pr_ms": 174,
+      "qrs_ms": 72,
+      "qt_ms": 410,
+      "qtc_ms": 443,
+      "findings": null,
+      "source": "clinic_ecg",
+      "is_anomalous": false,
+      "notes": null
+    },
+    {
+      "reading_date": "2023-06-16",
+      "hr_bpm": 70,
+      "pr_ms": 168,
+      "qrs_ms": 70,
+      "qt_ms": 418,
+      "qtc_ms": 451,
+      "findings": null,
+      "source": "clinic_ecg",
+      "is_anomalous": false,
+      "notes": null
+    },
+    {
+      "reading_date": "2023-09-11",
+      "hr_bpm": 70,
+      "pr_ms": 170,
+      "qrs_ms": 74,
+      "qt_ms": 420,
+      "qtc_ms": 454,
+      "findings": null,
+      "source": "clinic_ecg",
+      "is_anomalous": false,
+      "notes": null
+    },
+    {
+      "reading_date": "2023-12-11",
+      "hr_bpm": 70,
+      "pr_ms": 166,
+      "qrs_ms": 70,
+      "qt_ms": 396,
+      "qtc_ms": 428,
+      "findings": null,
+      "source": "clinic_ecg",
+      "is_anomalous": false,
+      "notes": "Post ICD generator replacement"
+    },
+    {
+      "reading_date": "2024-02-02",
+      "hr_bpm": 70,
+      "pr_ms": 170,
+      "qrs_ms": 72,
+      "qt_ms": 368,
+      "qtc_ms": 397,
+      "findings": null,
+      "source": "clinic_ecg",
+      "is_anomalous": false,
+      "notes": "Day of AF with RVR event and ICD shock"
+    },
+    {
+      "reading_date": "2024-05-30",
+      "hr_bpm": 70,
+      "pr_ms": 172,
+      "qrs_ms": 70,
+      "qt_ms": 412,
+      "qtc_ms": 445,
+      "findings": null,
+      "source": "clinic_ecg",
+      "is_anomalous": false,
+      "notes": "TKOS diagnosis confirmed this visit"
+    },
+    {
+      "reading_date": "2024-07-10",
+      "hr_bpm": 70,
+      "pr_ms": 246,
+      "qrs_ms": 152,
+      "qt_ms": 520,
+      "qtc_ms": 533,
+      "findings": null,
+      "source": "clinic_ecg",
+      "is_anomalous": true,
+      "notes": "Device malfunction — ICD lead fracture and generator migration. Emergency surgery Jul 12, 2024. Not representative of cardiac baseline."
+    },
+    {
+      "reading_date": "2024-11-26",
+      "hr_bpm": 70,
+      "pr_ms": 168,
+      "qrs_ms": 70,
+      "qt_ms": 408,
+      "qtc_ms": 441,
+      "findings": null,
+      "source": "clinic_ecg",
+      "is_anomalous": false,
+      "notes": "Post emergency lead extraction and ICD reimplant (Jul 2024)"
+    },
+    {
+      "reading_date": "2025-05-07",
+      "hr_bpm": 70,
+      "pr_ms": 170,
+      "qrs_ms": 72,
+      "qt_ms": 416,
+      "qtc_ms": 449,
+      "findings": null,
+      "source": "clinic_ecg",
+      "is_anomalous": false,
+      "notes": null
+    },
+    {
+      "reading_date": "2025-11-20",
+      "hr_bpm": 70,
+      "pr_ms": 170,
+      "qrs_ms": 70,
+      "qt_ms": 402,
+      "qtc_ms": 434,
+      "findings": null,
+      "source": "clinic_ecg",
+      "is_anomalous": false,
+      "notes": "Most recent ECG. Used for current static thresholds."
+    }
+  ],
+
+  "static_thresholds": [
+    {
+      "effective_date": "2025-11-20",
+      "source": "clinic_ecg",
+      "clinician": "Dr. Rachel Torres",
+      "resting_hr_bpm": 70,
+      "ectopy_onset_hr_bpm": null,
+      "prescribed_hr_ceiling": null,
+      "qrs_baseline_ms": 70,
+      "qtc_baseline_ms": 434,
+      "qrs_widening_alert_pct": 0.25,
+      "qrs_absolute_alert_ms": 88,
+      "qtc_upper_limit_ms": 500,
+      "icd_gap_lower_bpm": 70,
+      "icd_gap_upper_bpm": 190,
+      "notes": "Resting HR is pacemaker-set (lower rate limit 70, atrial pacing >90%). QRS alert at 88ms = 70 * 1.25. Ectopy onset and HR ceiling unavailable (no stress test data).",
+      "is_current": true
+    }
+  ],
+
+  "clinical_notes": [
+    {
+      "visit_date": "2025-11-20",
+      "clinician": "Dr. Rachel Torres",
+      "facility": "Pediatric Cardiac Institute",
+      "note_type": "progress_note",
+      "raw_text": null,
+      "extracted_json": null
+    }
+  ],
+
+  "surgical_history": [
+    {
+      "procedure_date": "2008",
+      "procedure_name": "Left Cardiac Sympathetic Denervation (LCSD)",
+      "surgeon": null,
+      "facility": null,
+      "laterality": "left",
+      "notes": "Early childhood procedure"
+    },
+    {
+      "procedure_date": "2011-07-28",
+      "procedure_name": "ICD Implantation",
+      "surgeon": null,
+      "facility": null,
+      "laterality": null,
+      "notes": "Boston Scientific, 1st generator. Initial ICD implant."
+    },
+    {
+      "procedure_date": "2015-01",
+      "procedure_name": "ICD Lead Revision",
+      "surgeon": null,
+      "facility": null,
+      "laterality": null,
+      "notes": "Lead revision procedure"
+    },
+    {
+      "procedure_date": "2018-11-25",
+      "procedure_name": "Lead Extraction and ICD Generator Replacement",
+      "surgeon": null,
+      "facility": null,
+      "laterality": null,
+      "notes": "2nd generator. Routine end-of-life replacement."
+    },
+    {
+      "procedure_date": "2023-12-11",
+      "procedure_name": "ICD Generator Replacement",
+      "surgeon": null,
+      "facility": null,
+      "laterality": null,
+      "notes": "3rd generator — Boston Scientific DYNAGEN MINI ICD F210 (current device)"
+    },
+    {
+      "procedure_date": "2024-02-02",
+      "procedure_name": "Emergency Department Visit",
+      "surgeon": null,
+      "facility": null,
+      "laterality": null,
+      "notes": "AF with RVR, ICD shock (41J), subdural hematoma. Not a surgery but clinically significant event."
+    },
+    {
+      "procedure_date": "2024-07-12",
+      "procedure_name": "Emergency Lead Extraction and ICD Reimplantation",
+      "surgeon": null,
+      "facility": null,
+      "laterality": null,
+      "notes": "Lead fracture and generator migration discovered Jul 10 ECG. Emergency surgery 2 days later."
+    },
+    {
+      "procedure_date": "2024-12",
+      "procedure_name": "Appendectomy",
+      "surgeon": null,
+      "facility": null,
+      "laterality": "bilateral",
+      "notes": null
+    }
+  ]
+}
