@@ -1,5 +1,8 @@
 """Shared test fixtures — in-memory DB, FastAPI test client."""
 
+import os
+import tempfile
+
 import pytest
 from peewee import SqliteDatabase
 from fastapi.testclient import TestClient
@@ -21,18 +24,29 @@ ALL_MODELS = [
     TemperatureReading, WeatherReading, Episode,
 ]
 
-_test_db = SqliteDatabase(":memory:", pragmas={"foreign_keys": 1})
-
 
 @pytest.fixture(autouse=True)
-def setup_test_db():
-    """Bind all models to an in-memory DB, create tables, tear down after."""
+def setup_test_db(tmp_path):
+    """Bind all models to a temp-file DB, create tables, tear down after.
+
+    Uses a temp file instead of :memory: so that the FastAPI TestClient
+    (which may run requests in a separate thread) shares the same database.
+    """
+    db_path = str(tmp_path / "test.db")
+    _test_db = SqliteDatabase(db_path, pragmas={"foreign_keys": 1})
     _test_db.bind(ALL_MODELS)
     _test_db.connect()
     _test_db.create_tables(ALL_MODELS)
-    yield
+
+    # Also patch the module-level db so init_db() is harmless
+    _original_db = db_module.db
+    db_module.db = _test_db
+
+    yield _test_db
+
     _test_db.drop_tables(ALL_MODELS)
     _test_db.close()
+    db_module.db = _original_db
 
 
 @pytest.fixture
