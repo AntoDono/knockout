@@ -1,0 +1,20 @@
+# Calm resting — fully medicated, no events
+name:        "Healthy – Calm Resting"
+description: "Stable sinus rhythm at rest with good drug levels. No arrhythmia."
+speed:    300
+duration: "10m"
+
+drugs:
+  - name: nadolol
+    doses:
+      - amount_mg: 40
+        taken_at: "-3h"
+
+heart:
+  baseline_bpm: 62
+  noise_std:    1.5
+  segments:
+    - start: "0m"
+      end:   "10m"
+      pattern: normal
+      bpm: 62

@@ -28,6 +28,7 @@ interface HeartSocketState {
   connected: boolean;
   latestBpm: number | null;
   afib: AfibData | null;
+  afibEventId: string | null;
   drugLevels: DrugLevel[];
   simName: string | null;
   simTimeS: number | null;
@@ -40,6 +41,7 @@ export function useHeartSocket(): HeartSocketState {
     connected: false,
     latestBpm: null,
     afib: null,
+    afibEventId: null,
     drugLevels: [],
     simName: null,
     simTimeS: null,
@@ -75,6 +77,7 @@ export function useHeartSocket(): HeartSocketState {
       connected: true,
       latestBpm: msg.latestBpm,
       afib: msg.afib,
+      afibEventId: msg.afibEventId ?? null,
       drugLevels: msg.drugLevels ?? [],
       simName: msg.simName ?? null,
       simTimeS: msg.simTimeS ?? null,

@@ -1,0 +1,38 @@
+# Short paroxysmal AFib burst during nadolol trough
+name:        "Paroxysmal AFib Burst"
+description: "Sudden AFib onset and self-termination during drug trough."
+speed:    300
+duration: "15m"
+
+drugs:
+  - name: nadolol
+    doses:
+      - amount_mg: 40
+        taken_at: "-14h"
+
+heart:
+  baseline_bpm: 70
+  noise_std:    2.0
+  segments:
+    - start: "0m"
+      end:   "5m"
+      pattern: normal
+      bpm: 70
+
+    - start: "5m"
+      end:   "6m"
+      pattern: normal
+      bpm: 74
+      bpm_std: 4.0
+
+    - start:    "6m"
+      end:      "11m"
+      pattern:  afib
+      bpm_mean: 105
+      bpm_std:  22
+
+    - start: "11m"
+      end:   "15m"
+      pattern: normal
+      bpm: 72
+      bpm_std: 3.0

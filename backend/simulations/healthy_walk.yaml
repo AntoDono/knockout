@@ -1,0 +1,38 @@
+# Light walk — gentle HR elevation, totally normal sinus
+name:        "Healthy – Light Walk"
+description: "Gentle walk with controlled HR rise. Normal sinus throughout."
+speed:    300
+duration: "12m"
+
+drugs:
+  - name: nadolol
+    doses:
+      - amount_mg: 40
+        taken_at: "-4h"
+
+heart:
+  baseline_bpm: 64
+  noise_std:    2.0
+  segments:
+    - start: "0m"
+      end:   "2m"
+      pattern: normal
+      bpm: 64
+
+    - start: "2m"
+      end:   "5m"
+      pattern: normal
+      bpm: 78
+      bpm_std: 3.0
+
+    - start: "5m"
+      end:   "9m"
+      pattern: normal
+      bpm: 85
+      bpm_std: 3.0
+
+    - start: "9m"
+      end:   "12m"
+      pattern: normal
+      bpm: 68
+      bpm_std: 2.0
