@@ -3,19 +3,21 @@ import { Heart, Activity, Thermometer, Moon, CloudSun } from "lucide-react";
 import type { Episode } from "@/lib/types";
 import {
   HR_HISTORY, HRV_HISTORY, TEMPERATURE_HISTORY,
-  WEATHER_HISTORY, SLEEP_HISTORY,
+  WEATHER_HISTORY, SLEEP_HISTORY, BASELINES, EPISODE_INSIGHTS,
 } from "@/lib/data/synthetic";
+import { EpisodeTimeline } from "./EpisodeTimeline";
 
 interface EpisodeContextProps {
   episode: Episode;
 }
 
-function MiniStat({ icon: Icon, label, value, unit, color }: {
+function MiniStat({ icon: Icon, label, value, unit, color, comparison }: {
   icon: React.ElementType;
   label: string;
   value: string;
   unit: string;
   color: string;
+  comparison?: string;
 }) {
   return (
     <div className="flex items-center gap-2.5 p-3 rounded-xl bg-muted/40">
@@ -23,6 +25,7 @@ function MiniStat({ icon: Icon, label, value, unit, color }: {
       <div>
         <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{label}</p>
         <p className="text-sm font-semibold">{value} <span className="text-xs font-normal text-muted-foreground">{unit}</span></p>
+        {comparison && <p className="text-[10px] text-muted-foreground">{comparison}</p>}
       </div>
     </div>
   );
@@ -82,17 +85,30 @@ export function EpisodeContext({ episode }: EpisodeContextProps) {
     ? Math.round(weatherWindow.reduce((s, r) => s + r.humidityPct, 0) / weatherWindow.length)
     : null;
 
+  // Baseline comparisons
+  const hrDeviation = Math.round(((avgHr - BASELINES.hr.mean) / BASELINES.hr.mean) * 100);
+  const hrvDeviation = Math.round(((avgHrv - BASELINES.hrv.mean) / BASELINES.hrv.mean) * 100);
+  const tempNum = parseFloat(avgTemp as string);
+  const tempDeviation = !isNaN(tempNum) ? Math.round(((tempNum - BASELINES.temperature.mean) / BASELINES.temperature.mean) * 100) : null;
+
+  // Look up context narrative
+  const insight = EPISODE_INSIGHTS.find((i) => i.id === episode.id);
+
   return (
     <div className="mt-4 pt-4 border-t border-border/50 space-y-3 animate-fade-in">
       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
         24-Hour Context Window
       </p>
 
+      {/* Layer 1: Timeline chart */}
+      <EpisodeTimeline episode={episode} />
+
+      {/* Layer 2: Enhanced stats with baseline comparison */}
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-        <MiniStat icon={Heart} label="Avg HR" value={`${avgHr}`} unit="bpm" color="text-red-500" />
+        <MiniStat icon={Heart} label="Avg HR" value={`${avgHr}`} unit="bpm" color="text-red-500" comparison={`${hrDeviation > 0 ? "+" : ""}${hrDeviation}% vs baseline`} />
         <MiniStat icon={Heart} label="HR Range" value={`${minHr}–${maxHr}`} unit="bpm" color="text-red-400" />
-        <MiniStat icon={Activity} label="Avg HRV" value={`${avgHrv}`} unit="ms" color="text-primary" />
-        <MiniStat icon={Thermometer} label="Body Temp" value={avgTemp} unit="°C" color="text-amber-500" />
+        <MiniStat icon={Activity} label="Avg HRV" value={`${avgHrv}`} unit="ms" color="text-primary" comparison={`${hrvDeviation > 0 ? "+" : ""}${hrvDeviation}% vs baseline`} />
+        <MiniStat icon={Thermometer} label="Body Temp" value={avgTemp} unit="°C" color="text-amber-500" comparison={tempDeviation !== null ? `${tempDeviation > 0 ? "+" : ""}${tempDeviation}% vs baseline` : undefined} />
         {nearestSleep && (
           <MiniStat
             icon={Moon}
@@ -100,6 +116,7 @@ export function EpisodeContext({ episode }: EpisodeContextProps) {
             value={`${Math.floor(nearestSleep.durationMinutes / 60)}h ${nearestSleep.durationMinutes % 60}m`}
             unit={nearestSleep.quality}
             color="text-indigo-500"
+            comparison={`avg ${Math.floor(BASELINES.sleep.meanDurationMin / 60)}h ${Math.round(BASELINES.sleep.meanDurationMin % 60)}m`}
           />
         )}
         {avgWeatherTemp !== null && (
@@ -109,6 +126,7 @@ export function EpisodeContext({ episode }: EpisodeContextProps) {
             value={`${avgWeatherTemp}°C`}
             unit={`${avgHumidity}% humid`}
             color="text-sky-500"
+            comparison={`avg ${BASELINES.weather.meanTempC}°C`}
           />
         )}
       </div>
@@ -120,6 +138,14 @@ export function EpisodeContext({ episode }: EpisodeContextProps) {
         <span>·</span>
         <span>{tempWindow.length} temp readings</span>
       </div>
+
+      {/* Layer 3: Context narrative */}
+      {insight?.contextNarrative && (
+        <div className="rounded-xl bg-muted/30 p-3 border border-border/50 mt-3">
+          <p className="text-xs font-medium text-muted-foreground mb-1">Context Analysis</p>
+          <p className="text-xs text-foreground leading-relaxed">{insight.contextNarrative}</p>
+        </div>
+      )}
     </div>
   );
 }
