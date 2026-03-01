@@ -30,6 +30,13 @@ npm run lint                     # ESLint
 cd backend && rm -f knockout.db && uv run python -c "from database import init_db; init_db()"
 ```
 
+**After merges:** If `knockout.db` has merge conflicts, resolve by running `init_db()` — it creates missing tables (`safe=True`) without touching existing data. `sqlite3 knockout.db ".tables"` to verify.
+
+### Synthetic demo data
+```bash
+curl -X POST http://localhost:8080/synthetic/generate   # or via the app
+```
+
 ## Documentation
 
 `docs/overview.md` — full project vision, the 6-layer architecture, and the three blind spots (ICD Gap, Visit Gap, Why Gap). Read this first for context.
@@ -38,7 +45,7 @@ cd backend && rm -f knockout.db && uv run python -c "from database import init_d
 
 ## Architecture
 
-**Backend:** FastAPI (Python 3.13, uv) with Peewee ORM on SQLite (`knockout.db`).
+**Backend:** FastAPI (Python 3.13, uv) with Peewee ORM on SQLite (`knockout.db`). The DB file is tracked in git with seed data.
 **Frontend:** Next.js 16, React 19, Tailwind CSS v4, D3.js for charts.
 
 ### API routes
@@ -66,6 +73,14 @@ cd backend && rm -f knockout.db && uv run python -c "from database import init_d
 /patient/triggers  GET    routes/patient.py   – known triggers with source/confidence
 
 /report            GET    routes/reports.py   – generate cardiology PDF report
+
+/baselines         GET    routes/baselines.py – rolling 7-day personal baselines
+
+/episodes          POST   routes/episodes.py  – create episode (one-tap)
+/episodes          GET    routes/episodes.py  – list episodes (?start= &end= filter)
+/episodes/{id}/context GET routes/episodes.py – 24-hour context for episode
+
+/synthetic/generate POST  routes/synthetic.py – generate 7 days of demo data
 ```
 
 ### Services (`services/`)
@@ -73,6 +88,8 @@ cd backend && rm -f knockout.db && uv run python -c "from database import init_d
 Business logic utilities used by routes:
 - `heart_analyze.py` — AFib detection from BPM readings
 - `llm_tools.py` — Drug half-life lookup via Grok
+- `baselines.py` — 7-day rolling baseline computation for all streams
+- `synthetic.py` — 7-day synthetic data generator for hackathon demo
 
 ### Database layer (`database.py`)
 
@@ -83,6 +100,8 @@ Two tiers of Peewee models:
 **Layer 1 (clinical foundation):** 13 models seeded from `seed/clinical.json` on first startup — `Patient`, `PatientDiagnosis`, `PatientAllergy`, `KnownTrigger`, `Medication`, `ICDDevice`, `ICDZone`, `ICDEpisode`, `ICDShockHistory`, `ECGReading`, `StaticThreshold`, `ClinicalNote`, `SurgicalHistory`.
 
 Seeding is idempotent — `_seed_clinical()` skips if any Patient row exists.
+
+**Layer 2 (passive streams):** 6 models — `HeartRateReading`, `HRVReading`, `SleepRecord`, `TemperatureReading`, `WeatherReading`, `Episode`. All indexed on `(patient_id, recorded_at)`. The `/push` endpoint persists incoming sensor data to the appropriate table via name-based routing.
 
 ### Report module (`report/`)
 
@@ -103,13 +122,19 @@ Frontend currently simulates vitals; not yet wired to backend API.
 
 **PK decay model:** `remaining = amount_mg * 0.5^(elapsed_s / half_life_s)`. Implemented in both `database.py` (backend) and `lib/simulate.ts` (frontend). Nadolol half-life = 22h; symptoms cluster during trough windows.
 
-**Static thresholds:** Patient-specific baselines from clinical records (resting HR 70 bpm is pacemaker-set, not intrinsic). Stored in `static_thresholds` table. Dynamic baselines (rolling averages from watch data) are a future Layer 2 concern.
+**Static thresholds:** Patient-specific baselines from clinical records (resting HR 70 bpm is pacemaker-set, not intrinsic). Stored in `static_thresholds` table.
+
+**Rolling baselines** (`services/baselines.py`): Dynamic 7-day rolling averages computed on-the-fly for HR, HRV, sleep, temperature, and weather. Available via `GET /baselines`. Complements static thresholds with personal trend data from Layer 2 streams.
 
 **AFib detection** (`services/heart_analyze.py`): Weighted voting across 6 HRV metrics (CV, RMSSD, pNN20, SD1/SD2, sample entropy, LF/HF). Needs >= 10 BPM samples. Broadcasts via WebSocket.
 
 ## Environment
 
 `backend/.env` needs `XAI_API_KEY` for Grok-powered drug half-life lookup. Server starts fine without it — only `POST /drugs` auto-lookup fails.
+
+## Preferences
+
+- No pytest or test files unless explicitly requested. Just implement and verify the server starts.
 
 ## Test patient
 

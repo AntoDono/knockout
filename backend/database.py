@@ -319,10 +319,109 @@ class SurgicalHistory(BaseModel):
         table_name = "surgical_history"
 
 
+# ---------------------------------------------------------------------------
+# Layer 2: Passive Data Streams
+# ---------------------------------------------------------------------------
+
+
+class HeartRateReading(BaseModel):
+    """Continuous heart rate from watch or sensor."""
+    id = AutoField()
+    patient = ForeignKeyField(Patient, backref="hr_readings", on_delete="CASCADE")
+    recorded_at = DateTimeField(index=True)
+    hr_bpm = IntegerField()
+    source = CharField(default="sensor_logger")  # apple_watch, sensor_logger, synthetic
+    activity = CharField(null=True)  # resting, walking, active
+
+    class Meta:
+        table_name = "hr_readings"
+        indexes = ((("patient", "recorded_at"), False),)
+
+
+class HRVReading(BaseModel):
+    """Heart rate variability measurements."""
+    id = AutoField()
+    patient = ForeignKeyField(Patient, backref="hrv_readings", on_delete="CASCADE")
+    recorded_at = DateTimeField(index=True)
+    hrv_ms = FloatField()  # SDNN in milliseconds
+    source = CharField(default="sensor_logger")
+    measurement_type = CharField(default="sdnn")  # sdnn, rmssd
+
+    class Meta:
+        table_name = "hrv_readings"
+        indexes = ((("patient", "recorded_at"), False),)
+
+
+class SleepRecord(BaseModel):
+    """One row per sleep session."""
+    id = AutoField()
+    patient = ForeignKeyField(Patient, backref="sleep_records", on_delete="CASCADE")
+    sleep_start = DateTimeField()
+    sleep_end = DateTimeField()
+    duration_minutes = IntegerField()
+    quality = CharField()  # poor, fair, good, excellent
+    deep_minutes = IntegerField(null=True)
+    rem_minutes = IntegerField(null=True)
+    awakenings = IntegerField(null=True)
+    source = CharField(default="synthetic")
+
+    class Meta:
+        table_name = "sleep_records"
+        indexes = ((("patient", "sleep_start"), False),)
+
+
+class TemperatureReading(BaseModel):
+    """Wrist temperature from Apple Watch."""
+    id = AutoField()
+    patient = ForeignKeyField(Patient, backref="temperature_readings", on_delete="CASCADE")
+    recorded_at = DateTimeField(index=True)
+    temp_c = FloatField()  # Celsius
+    deviation_c = FloatField(null=True)  # deviation from personal baseline
+    source = CharField(default="synthetic")
+
+    class Meta:
+        table_name = "temperature_readings"
+        indexes = ((("patient", "recorded_at"), False),)
+
+
+class WeatherReading(BaseModel):
+    """Ambient environmental conditions."""
+    id = AutoField()
+    patient = ForeignKeyField(Patient, backref="weather_readings", on_delete="CASCADE")
+    recorded_at = DateTimeField(index=True)
+    temp_c = FloatField()  # ambient temp Celsius
+    humidity_pct = FloatField()
+    location_lat = FloatField(null=True)
+    location_lon = FloatField(null=True)
+    source = CharField(default="synthetic")  # openweathermap, synthetic
+
+    class Meta:
+        table_name = "weather_readings"
+        indexes = ((("patient", "recorded_at"), False),)
+
+
+class Episode(BaseModel):
+    """One-tap symptom capture — timestamp marker with context reconstructed from streams."""
+    id = AutoField()
+    patient = ForeignKeyField(Patient, backref="episodes", on_delete="CASCADE")
+    recorded_at = DateTimeField(index=True)
+    notes = TextField(null=True)
+    source = CharField(default="patient_tap")  # patient_tap, synthetic
+
+    class Meta:
+        table_name = "episodes"
+        indexes = ((("patient", "recorded_at"), False),)
+
+
 _LAYER1_MODELS = [
     Patient, PatientDiagnosis, PatientAllergy, KnownTrigger,
     Medication, ICDDevice, ICDZone, ICDEpisode, ICDShockHistory,
     ECGReading, StaticThreshold, ClinicalNote, SurgicalHistory,
+]
+
+_LAYER2_MODELS = [
+    HeartRateReading, HRVReading, SleepRecord,
+    TemperatureReading, WeatherReading, Episode,
 ]
 
 
@@ -333,7 +432,7 @@ _LAYER1_MODELS = [
 def init_db() -> None:
     """Create tables and seed data."""
     db.connect(reuse_if_open=True)
-    db.create_tables([Drug, Dose] + _LAYER1_MODELS, safe=True)
+    db.create_tables([Drug, Dose] + _LAYER1_MODELS + _LAYER2_MODELS, safe=True)
     _seed_from_cache()
     _seed_clinical()
 

@@ -30,7 +30,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import init_db
-from routes import sensor_router, drugs_router, patient_router, report_router
+from routes import (
+    sensor_router, drugs_router, patient_router, report_router,
+    baselines_router, episodes_router, synthetic_router,
+)
 
 # Set by __main__ before uvicorn starts; lifespan reads it.
 _sim_file: str | None = None
@@ -75,6 +78,9 @@ app.include_router(sensor_router)
 app.include_router(drugs_router)
 app.include_router(patient_router)
 app.include_router(report_router)
+app.include_router(baselines_router)
+app.include_router(episodes_router)
+app.include_router(synthetic_router)
 
 
 if __name__ == "__main__":

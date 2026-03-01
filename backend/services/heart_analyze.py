@@ -277,7 +277,7 @@ def detect_afib(bpms: list[float] | np.ndarray, min_samples: int = _MIN_SAMPLES)
     sample_factor  = min(len(bpms) / 120.0, 1.0)
     confidence     = weighted_score * (0.5 + 0.5 * sample_factor)
 
-    afib_detected  = confidence >= 0.5
+    afib_detected  = confidence >= 0.75
 
     # --- human-readable notes ------------------------------------------------
     if cv > _CV_THRESH:

@@ -330,7 +330,7 @@ async def run_simulation(config: SimConfig) -> None:
     _prev_bpm = None  # reset walk state for each run
 
     import json as _json
-    from routes.sensor import _bpm_buffer, _build_heart_payload, _broadcast
+    from routes.sensor import _bpm_buffer, _build_heart_payload, _broadcast, _check_afib_alert
 
     sim_start = datetime.now(timezone.utc)
 
@@ -375,6 +375,7 @@ async def run_simulation(config: SimConfig) -> None:
         payload["sim_time_s"] = round(t, 1)
         payload["sim_name"]   = config.name
         await _broadcast(_json.dumps(payload))
+        _check_afib_alert(payload.get("afib"))
 
         await asyncio.sleep(real_tick_s)
 
