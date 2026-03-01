@@ -7,6 +7,9 @@ Sensor push, stats, and WebSocket heart stream endpoints.
 """
 
 import json
+import logging
+import os
+import threading
 from collections import deque
 from dataclasses import asdict
 from datetime import datetime, timezone
@@ -19,6 +22,9 @@ from database import (
     TemperatureReading, WeatherReading,
 )
 from services.heart_analyze import detect_afib
+from send_sms import send_sms
+
+log = logging.getLogger(__name__)
 
 router = APIRouter(tags=["sensor"])
 
@@ -36,6 +42,7 @@ stats = {
 
 _bpm_buffer: deque[float] = deque(maxlen=120)
 _ws_clients: set[WebSocket] = set()
+_afib_alert_sent: bool = False
 
 
 # ---------------------------------------------------------------------------
@@ -70,6 +77,41 @@ async def _broadcast(message: str) -> None:
             dead.append(ws)
     for ws in dead:
         _ws_clients.discard(ws)
+
+
+def _check_afib_alert(afib_data: dict | None) -> None:
+    """Send one SMS when AFib is first detected; reset when it clears."""
+    global _afib_alert_sent
+
+    if afib_data is None:
+        return
+
+    if afib_data.get("afib_detected"):
+        if not _afib_alert_sent:
+            print("SENDING AFIB ALERT")
+            _afib_alert_sent = True
+            alert_to = os.environ.get("ALERT_PHONE_NUMBER")
+            if not alert_to:
+                log.warning("ALERT_PHONE_NUMBER not set — skipping AFib SMS alert")
+                return
+            confidence = afib_data.get("confidence", 0)
+            body = (
+                f"⚠️ AFib detected (confidence {confidence:.0%}). "
+                "Check on the patient right now."
+            )
+            threading.Thread(
+                target=_send_alert, args=(alert_to, body), daemon=True
+            ).start()
+    else:
+        _afib_alert_sent = False
+
+
+def _send_alert(to: str, body: str) -> None:
+    try:
+        sid = send_sms(to, body)
+        log.info("AFib SMS alert sent (SID %s)", sid)
+    except Exception:
+        log.exception("Failed to send AFib SMS alert")
 
 
 @router.websocket("/ws")
@@ -250,8 +292,9 @@ async def push_sensor_data(data: dict):
                 latest_bpm = bpm
 
     if latest_bpm is not None:
-        msg = json.dumps(_build_heart_payload(latest_bpm))
-        await _broadcast(msg)
+        payload = _build_heart_payload(latest_bpm)
+        await _broadcast(json.dumps(payload))
+        _check_afib_alert(payload.get("afib"))
 
     return {"status": "ok"}
 
