@@ -1,47 +1,51 @@
 "use client";
+import { useState, useEffect } from "react";
+import { BASELINES, MEDICATIONS } from "@/lib/data/synthetic";
+import { getCurrentDrugLevel } from "@/lib/simulate";
 
-import { useState, useEffect, useCallback } from "react";
-import type { Vitals } from "@/lib/types";
-import { nextVitals } from "@/lib/simulate";
+interface Vitals {
+  hr: number;
+  hrv: number;
+  drugLevel: number;
+}
 
-const INTERVAL_MS = 1500;
-
-const HR_BASELINE = 78;
-const HRV_BASELINE = 44;
-
-/** Deterministic initial vitals so server and client render the same (avoids hydration mismatch). */
-const INITIAL_VITALS: Vitals = {
-  heartRate: HR_BASELINE,
-  hrv: HRV_BASELINE,
-  activity: "Resting",
-  barometer: 1013,
-  barometerStability: "stable",
-};
-
-const INITIAL_HISTORY = {
-  hr: [HR_BASELINE, HR_BASELINE],
-  hrv: [HRV_BASELINE, HRV_BASELINE],
-};
-
-export function useVitals(getDrugLevel: () => number) {
-  const [vitals, setVitals] = useState<Vitals>(INITIAL_VITALS);
-  const [history, setHistory] = useState<{ hr: number[]; hrv: number[] }>(INITIAL_HISTORY);
-
-  const tick = useCallback(() => {
-    const level = getDrugLevel();
-    const next = nextVitals(level);
-    setVitals(next);
-    setHistory((h) => ({
-      hr: [...h.hr.slice(-29), next.heartRate].slice(-30),
-      hrv: [...h.hrv.slice(-29), next.hrv].slice(-30),
-    }));
-  }, [getDrugLevel]);
+export function useVitals(intervalMs = 5000): Vitals {
+  const [vitals, setVitals] = useState<Vitals>(() => {
+    const nadolol = MEDICATIONS.find((m) => m.drugName === "nadolol");
+    const drugLevel = nadolol?.halfLifeHours
+      ? getCurrentDrugLevel(nadolol.halfLifeHours, nadolol.doseTimes)
+      : 0;
+    return {
+      hr: BASELINES.hr.mean,
+      hrv: BASELINES.hrv.mean,
+      drugLevel,
+    };
+  });
 
   useEffect(() => {
-    tick();
-    const id = setInterval(tick, INTERVAL_MS);
-    return () => clearInterval(id);
-  }, [tick]);
+    const tick = () => {
+      const nadolol = MEDICATIONS.find((m) => m.drugName === "nadolol");
+      const drugLevel = nadolol?.halfLifeHours
+        ? getCurrentDrugLevel(nadolol.halfLifeHours, nadolol.doseTimes)
+        : 0;
 
-  return { vitals, history };
+      // Simulate small natural variation around baselines
+      const hrJitter = (Math.random() - 0.5) * 4;
+      const hrvJitter = (Math.random() - 0.5) * 6;
+      // Trough effect: HR rises, HRV drops when drug is low
+      const troughHrBoost = drugLevel < 30 ? 8 : drugLevel < 50 ? 3 : 0;
+      const troughHrvDrop = drugLevel < 30 ? -10 : drugLevel < 50 ? -4 : 0;
+
+      setVitals({
+        hr: Math.round(BASELINES.hr.mean + hrJitter + troughHrBoost),
+        hrv: Math.round(BASELINES.hrv.mean + hrvJitter + troughHrvDrop),
+        drugLevel,
+      });
+    };
+
+    const id = setInterval(tick, intervalMs);
+    return () => clearInterval(id);
+  }, [intervalMs]);
+
+  return vitals;
 }
