@@ -183,6 +183,9 @@ class SensorHandler(BaseHTTPRequestHandler):
             self._handle_get_doses()
         elif path == "/levels":
             self._handle_get_levels()
+        elif path.startswith("/patient"):
+            from patient_routes import route_patient
+            route_patient(self, path)
         else:
             self._send(404)
 
@@ -207,6 +210,13 @@ class SensorHandler(BaseHTTPRequestHandler):
                 self._send(400)
         else:
             self._send(404)
+
+    def do_OPTIONS(self):
+        self.send_response(204)
+        self.send_header("Access-Control-Allow-Origin", "*")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.end_headers()
 
     # ---- sensor: POST /push ------------------------------------------------
 
@@ -401,6 +411,7 @@ class SensorHandler(BaseHTTPRequestHandler):
         self.send_response(status)
         self.send_header("Content-Type", "application/json")
         self.send_header("Content-Length", len(body))
+        self.send_header("Access-Control-Allow-Origin", "*")
         self.end_headers()
         self.wfile.write(body)
 
@@ -485,6 +496,11 @@ def main():
     print(f"  Doses     :  http://{local_ip}:{PORT}/doses")
     print(f"  Levels    :  http://{local_ip}:{PORT}/levels")
     print(f"  Heart WS  :  ws://{local_ip}:{WS_PORT}")
+    print(f"  Patient   :  http://{local_ip}:{PORT}/patient")
+    print(f"  ICD       :  http://{local_ip}:{PORT}/patient/icd")
+    print(f"  ICD Gap   :  http://{local_ip}:{PORT}/patient/icd/gap")
+    print(f"  ECG       :  http://{local_ip}:{PORT}/patient/ecg")
+    print(f"  Thresholds:  http://{local_ip}:{PORT}/patient/thresholds")
     print("Press Ctrl+C to stop.\n")
     try:
         server.serve_forever()
