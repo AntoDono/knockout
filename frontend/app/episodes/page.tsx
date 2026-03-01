@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { EPISODES } from "@/lib/data/synthetic";
 import { EpisodeCard } from "@/components/episodes/EpisodeCard";
+import { EpisodeSummaryPanel } from "@/components/episodes/EpisodeSummaryPanel";
 import { cn } from "@/lib/utils";
 
 const FILTERS = [
@@ -47,6 +48,7 @@ export default function EpisodesPage() {
           ))}
         </div>
       </div>
+      <EpisodeSummaryPanel />
       <div className="space-y-4">
         {filtered.length > 0 ? (
           filtered.map((ep) => <EpisodeCard key={ep.id} episode={ep} />)
