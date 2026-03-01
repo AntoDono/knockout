@@ -330,7 +330,7 @@ async def run_simulation(config: SimConfig) -> None:
     _prev_bpm = None  # reset walk state for each run
 
     import json as _json
-    from sensor import _bpm_buffer, _build_heart_payload, _broadcast
+    from routes.sensor import _bpm_buffer, _build_heart_payload, _broadcast
 
     sim_start = datetime.now(timezone.utc)
 

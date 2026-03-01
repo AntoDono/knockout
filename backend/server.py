@@ -16,6 +16,11 @@ Pass --simulate <name> to replay a scenario file at startup:
     uv run server.py --simulate ../simulations/normal_day.yaml
 
 Scenario files live in  simulations/  at the repo root (YAML or JSON).
+Routes are organized into the routes/ package:
+  routes/sensor.py   – POST /push, GET /stats, WS /ws
+  routes/drugs.py    – /drugs, /doses, /levels
+  routes/patient.py  – /patient/*
+  routes/reports.py  – /report
 """
 
 import asyncio
@@ -25,10 +30,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from database import init_db
-from sensor import router as sensor_router
-from drugs import router as drugs_router
-from patient import router as patient_router
-from reports import router as report_router
+from routes import sensor_router, drugs_router, patient_router, report_router
 
 # Set by __main__ before uvicorn starts; lifespan reads it.
 _sim_file: str | None = None

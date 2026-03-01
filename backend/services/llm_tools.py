@@ -37,7 +37,7 @@ _SYSTEM = "\n".join([
 ])
 
 
-_CACHE_FILE = Path(__file__).parent / "halflife.json"
+_CACHE_FILE = Path(__file__).parent.parent / "halflife.json"
 
 
 def _load_cache() -> dict:

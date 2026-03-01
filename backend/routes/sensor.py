@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from database import get_current_levels
-from heart_analyze import detect_afib
+from services.heart_analyze import detect_afib
 
 router = APIRouter(tags=["sensor"])
 
